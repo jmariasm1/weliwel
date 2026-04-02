@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weliwel & Majisto Isometric Walk</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-top: #dff6ea;
+      --bg-bottom: #8bb890;
+      --panel: rgba(14, 44, 28, 0.78);
+      --panel-border: rgba(224, 249, 227, 0.18);
+      --panel-text: #f5ffef;
+      --accent: #f9dc72;
+      --accent-2: #9fe2a7;
+      --danger: #ff957c;
+      --shadow: rgba(8, 21, 15, 0.34);
+      --canvas-edge: rgba(255, 255, 255, 0.12);
+      --page-font: "Trebuchet MS", "Aptos", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      font-family: var(--page-font);
+      background:
+        radial-gradient(circle at top, rgba(250, 255, 245, 0.88), rgba(255, 255, 255, 0) 38%),
+        linear-gradient(180deg, var(--bg-top) 0%, #bedbb4 34%, var(--bg-bottom) 100%);
+      color: var(--panel-text);
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      place-items: stretch;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 20px;
+      width: 100%;
+      height: 100vh;
+      padding: 20px;
+      opacity: 0;
+      transform: translateY(14px);
+      animation: settle 560ms ease forwards;
+    }
+
+    .panel {
+      backdrop-filter: blur(16px);
+      background: linear-gradient(180deg, rgba(19, 56, 37, 0.86), var(--panel));
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      box-shadow: 0 20px 40px rgba(15, 36, 25, 0.18);
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .eyebrow {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 0.75rem;
+      color: rgba(245, 255, 239, 0.72);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      line-height: 0.95;
+      color: #fffbe8;
+    }
+
+    .lede,
+    .hint {
+      margin: 0;
+      line-height: 1.5;
+      color: rgba(245, 255, 239, 0.9);
+    }
+
+    .legend,
+    .stats {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+    }
+
+    .legend-item,
+    .stat-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .swatch.safe {
+      background: linear-gradient(180deg, #9fe2a7, #5ba56f);
+    }
+
+    .swatch.blocked {
+      background: linear-gradient(180deg, #ffd2bf, #ff8666);
+    }
+
+    .swatch.player {
+      background: linear-gradient(180deg, #fff1a8, #d6a940);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(245, 255, 239, 0.66);
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      color: #ffffff;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(245, 255, 239, 0.9);
+      font-size: 0.95rem;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .pad-button {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(249, 220, 114, 0.18), rgba(255, 255, 255, 0.05));
+      color: #fffbe8;
+      padding: 14px 12px;
+      font: inherit;
+      font-weight: 700;
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      cursor: pointer;
+      touch-action: none;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+      user-select: none;
+    }
+
+    .pad-button small {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: rgba(255, 251, 232, 0.72);
+      letter-spacing: 0.03em;
+    }
+
+    .pad-button:hover,
+    .pad-button:focus-visible,
+    .pad-button.is-active {
+      transform: translateY(-1px);
+      border-color: rgba(255, 251, 232, 0.42);
+      background: linear-gradient(180deg, rgba(249, 220, 114, 0.3), rgba(255, 255, 255, 0.08));
+      outline: none;
+    }
+
+    .scene-shell {
+      position: relative;
+      min-width: 0;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 30%),
+        linear-gradient(180deg, rgba(244, 252, 244, 0.3), rgba(29, 59, 42, 0.12));
+      border: 1px solid var(--canvas-edge);
+      box-shadow: 0 30px 60px rgba(15, 36, 25, 0.18);
+      isolation: isolate;
+    }
+
+    #scene {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .status-pill {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(20, 48, 33, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(14px);
+      color: #f5ffef;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .status-pill strong {
+      color: #fffbe8;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+        height: 100dvh;
+      }
+
+      .panel {
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        overflow: auto;
+      }
+
+      .app-shell {
+        padding: 14px;
+        gap: 14px;
+        min-height: 100dvh;
+      }
+
+      .scene-shell {
+        min-height: 58dvh;
+      }
+
+      .status-pill {
+        border-radius: 22px;
+      }
+    }
+
+    @keyframes settle {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="panel">
+      <p class="eyebrow">Orthogonal 3D View</p>
+      <h1>Weliwel & Majisto Walkabout</h1>
+      <p class="lede">
+        The arrow keys follow the diagonal world axes: up moves upper-right, right moves lower-right,
+        down moves lower-left, and left moves upper-left.
+      </p>
+
+      <div class="stats" aria-live="polite">
+        <div class="stat-item">
+          <div>
+            <div class="stat-label">Facing</div>
+            <div class="stat-value" id="facingLabel">Upper-right</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div>
+            <div class="stat-label">Tile Position</div>
+            <div class="stat-value" id="tileLabel">(2, 9)</div>
+          </div>
+        </div>
+        <div class="stat-item">
+          <div>
+            <div class="stat-label">Movement State</div>
+            <div class="stat-value" id="stateLabel">Loading sprites...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item">
+          <span class="swatch player" aria-hidden="true"></span>
+          <span>Weliwel is player-controlled, and Majisto roams autonomously with the same idle and walking loops.</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch blocked" aria-hidden="true"></span>
+          <span>Trees and flowers block movement, and Weliwel and Majisto also collide with each other.</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch safe" aria-hidden="true"></span>
+          <span>Open grass tiles are walkable. Hold a direction to keep moving across the garden.</span>
+        </div>
+      </div>
+
+      <div class="dpad" aria-label="Touch controls">
+        <button class="pad-button" data-key="ArrowUp" type="button">
+          <span>↗</span>
+          <small>Arrow Up</small>
+        </button>
+        <button class="pad-button" data-key="ArrowRight" type="button">
+          <span>↘</span>
+          <small>Arrow Right</small>
+        </button>
+        <button class="pad-button" data-key="ArrowLeft" type="button">
+          <span>↖</span>
+          <small>Arrow Left</small>
+        </button>
+        <button class="pad-button" data-key="ArrowDown" type="button">
+          <span>↙</span>
+          <small>Arrow Down</small>
+        </button>
+      </div>
+
+      <label class="toggle" for="markerToggle">
+        <input id="markerToggle" type="checkbox">
+        <span>Show location markers for development</span>
+      </label>
+
+      <p class="hint" id="hintLabel">
+        Loading sprite sheet...
+      </p>
+    </section>
+
+    <section class="scene-shell">
+      <div class="status-pill">
+        <span><strong>Weliwel</strong> follows your keys while <strong>Majisto</strong> wanders on its own.</span>
+        <span id="statusLabel">Preparing the garden...</span>
+      </div>
+      <canvas id="scene" aria-label="Isometric Weliwel and Majisto walking scene"></canvas>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const canvas = document.getElementById("scene");
+      const ctx = canvas.getContext("2d");
+      const facingLabel = document.getElementById("facingLabel");
+      const tileLabel = document.getElementById("tileLabel");
+      const stateLabel = document.getElementById("stateLabel");
+      const hintLabel = document.getElementById("hintLabel");
+      const statusLabel = document.getElementById("statusLabel");
+      const markerToggle = document.getElementById("markerToggle");
+      const padButtons = Array.from(document.querySelectorAll(".pad-button"));
+
+      const scene = {
+        width: 0,
+        height: 0,
+        dpr: window.devicePixelRatio || 1,
+      };
+
+      const grid = {
+        width: 13,
+        height: 13,
+        tileWidth: 124,
+        tileHeight: 64,
+        tileDepth: 20,
+      };
+
+      const directions = {
+        ArrowUp: { dx: 0, dy: -1, sprite: "ur", label: "Upper-right" },
+        ArrowRight: { dx: 1, dy: 0, sprite: "lr", label: "Lower-right" },
+        ArrowDown: { dx: 0, dy: 1, sprite: "ll", label: "Lower-left" },
+        ArrowLeft: { dx: -1, dy: 0, sprite: "ul", label: "Upper-left" },
+      };
+
+      const idleSequence = ["Idle_1", "Idle_2", "Idle_3"];
+      const idleCycleSequence = ["Idle_1", "Idle_2", "Idle_3", "Idle_2"];
+      const walkingSequence = [
+        "Idle_1",
+        "Walking_1",
+        "Walking_2",
+        "Walking_3",
+        "Idle_1",
+        "Walking_4",
+        "Walking_5",
+        "Walking_6",
+      ];
+
+      const directionOrder = ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"];
+      const pressedControls = new Map();
+      const pressedAt = new Map();
+
+      const assets = {
+        player: {},
+        majisto: {},
+        tree: {},
+        flowers: {},
+      };
+
+      const debug = {
+        showMarkers: false,
+      };
+
+      const trimConfig = {
+        alphaThreshold: 1,
+        paddingX: 20,
+        paddingTop: 24,
+        paddingBottom: 32,
+        extraPaddingByType: {
+          player: { x: 16, top: 28, bottom: 24 },
+          tree: { x: 8, top: 6, bottom: 14 },
+          flower: { x: 14, top: 12, bottom: 52 },
+        },
+        pivotYFactorByType: {
+          player: 0.88,
+          tree: 0.84,
+          flower: 0.93,
+        },
+        pivotXFactorByType: {
+          player: 0.5,
+          tree: 0.5,
+          flower: 0.5,
+        },
+        renderOffsetYByType: {
+          player: 0,
+          tree: 30,
+          flower: 0,
+        },
+        matteAlphaCutoffByType: {
+          default: 170,
+          flower: 18,
+        },
+        matteRgbCutoff: 30,
+      };
+
+      const fallbackBounds = {
+        player: { x: 220, y: 80, width: 640, height: 770, typeName: "player" },
+        tree: { x: 190, y: 50, width: 700, height: 910, typeName: "tree" },
+        flower: { x: 250, y: 250, width: 580, height: 520, typeName: "flower" },
+      };
+
+      const flowerSourceByDirection = {
+        ur: { x: 370, y: 350, width: 381, height: 411 },
+        ul: { x: 253, y: 438, width: 361, height: 371 },
+        lr: { x: 466, y: 490, width: 361, height: 319 },
+        ll: { x: 337, y: 552, width: 365, height: 319 },
+      };
+
+      const flowerPivotByDirection = {
+        ur: { x: 539.39, y: 719.78 },
+        ul: { x: 451.54, y: 781.97 },
+        lr: { x: 627.52, y: 781.88 },
+        ll: { x: 539.8, y: 844.04 },
+      };
+
+      const playerSourceByDirection = {
+        ur: { x: 300, y: 0, width: 561, height: 816 },
+        ul: { x: 35, y: 110, width: 745, height: 706 },
+        lr: { x: 300, y: 150, width: 745, height: 725 },
+        ll: { x: 219, y: 150, width: 561, height: 763 },
+      };
+
+      const playerPivotByDirection = {
+        // Manual midpoint between both feet per direction (from idle reference poses).
+        ur: { x: 605.56, y: 700.53 },
+        ul: { x: 472.49, y: 700.51 },
+        lr: { x: 563.4, y: 765.1 },
+        ll: { x: 526.65, y: 773.58 },
+      };
+
+      const playerReferenceHeightByDirection = {
+        ur: 792,
+        ul: 663,
+        lr: 686,
+        ll: 724,
+      };
+
+      const majistoSourceByDirection = {
+        // Union bounds across Majisto Idle_1/Idle_2/Idle_3 per direction (prevents idle frame clipping).
+        ur: { x: 275, y: 0, width: 635, height: 788 },
+        ul: { x: 13, y: 69, width: 792, height: 719 },
+        lr: { x: 275, y: 109, width: 792, height: 741 },
+        ll: { x: 170, y: 109, width: 635, height: 741 },
+      };
+
+      const majistoPivotByDirection = {
+        // Manual center between both feet per direction (from Majisto idle reference poses).
+        ur: { x: 640.1, y: 696.7 },
+        ul: { x: 472.0, y: 697.0 },
+        lr: { x: 557.5, y: 756.6 },
+        ll: { x: 508.5, y: 766.1 },
+      };
+
+      const majistoReferenceHeightByDirection = {
+        ur: 788,
+        ul: 719,
+        lr: 741,
+        ll: 741,
+      };
+
+      const characterRenderProfiles = {
+        player: {
+          sourceByDirection: playerSourceByDirection,
+          pivotByDirection: playerPivotByDirection,
+          referenceHeightByDirection: playerReferenceHeightByDirection,
+        },
+        majisto: {
+          sourceByDirection: majistoSourceByDirection,
+          pivotByDirection: majistoPivotByDirection,
+          referenceHeightByDirection: majistoReferenceHeightByDirection,
+        },
+      };
+
+      const camera = {
+        x: 0,
+        y: 0,
+      };
+
+      const worldObjects = [
+        { kind: "tree", label: "Mint tree", x: 3, y: 2, direction: "ur", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 6, y: 2, direction: "ul", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 9, y: 3, direction: "ll", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 10, y: 6, direction: "lr", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 5, y: 8, direction: "ur", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 8, y: 10, direction: "ul", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 2, y: 5, direction: "lr", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 4, y: 6, direction: "ur", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "whiteflower", label: "White flowers", x: 7, y: 5, direction: "ll", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 11, y: 4, direction: "ul", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 9, y: 8, direction: "lr", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "whiteflower", label: "White flowers", x: 3, y: 10, direction: "ur", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 6, y: 10, direction: "ll", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 1, y: 8, direction: "ul", solid: true, scale: 0.86, shadow: 0.56 },
+      ];
+
+      const occupancy = new Map(worldObjects.map((object) => [tileKey(object.x, object.y), object]));
+
+      const terrainPalette = ["#7ab26e", "#89bc78", "#6ea864", "#9ecf8a"];
+      const tileTone = Array.from({ length: grid.height }, (_, y) =>
+        Array.from({ length: grid.width }, (_, x) => terrainPalette[Math.abs(hashTile(x, y)) % terrainPalette.length])
+      );
+
+      function createCharacterState(x, y, direction) {
+        return {
+          x,
+          y,
+          renderX: x,
+          renderY: y,
+          fromX: x,
+          fromY: y,
+          toX: x,
+          toY: y,
+          moving: false,
+          moveStartedAt: 0,
+          moveDuration: 200,
+          direction,
+          animation: "idle",
+          frameIndex: 0,
+          frameTimer: 0,
+          idleFrame: "Idle_1",
+          idleCycleActive: false,
+          idleCycleIndex: 0,
+          idleCycleRunId: 0,
+          nextIdleCycleAt: Number.POSITIVE_INFINITY,
+          blockedUntil: 0,
+        };
+      }
+
+      const player = createCharacterState(2, 9, "ur");
+      const majisto = {
+        ...createCharacterState(10, 9, "ll"),
+        aiDirectionKey: null,
+        aiDecisionAt: 0,
+        aiWalkUntil: 0,
+        lastRespondedPlayerIdleRunId: 0,
+      };
+
+      let isLoaded = false;
+      let previousFrameTime = 0;
+
+      function hashTile(x, y) {
+        return (x * 92837111) ^ (y * 689287499) ^ (x * y * 97);
+      }
+
+      function tileKey(x, y) {
+        return `${x},${y}`;
+      }
+
+      function easeInOutSine(value) {
+        return -(Math.cos(Math.PI * value) - 1) / 2;
+      }
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function randomBetween(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function scheduleNextIdleCycle(character, now) {
+        const wait = 9000 + Math.random() * 21000;
+        character.nextIdleCycleAt = now + wait;
+      }
+
+      function pickRandomDirection(excludedDirectionKey = null) {
+        const pool = excludedDirectionKey
+          ? directionOrder.filter((key) => key !== excludedDirectionKey)
+          : [...directionOrder];
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      function startCharacterIdleCycle(character, now) {
+        if (character.animation !== "idle") {
+          setCharacterAnimation(character, "idle", now);
+        }
+        character.idleCycleActive = true;
+        character.idleCycleIndex = 0;
+        character.frameTimer = 0;
+        character.idleFrame = idleCycleSequence[0];
+        character.idleCycleRunId += 1;
+      }
+
+      function areCharactersAdjacent(left, right) {
+        return Math.abs(left.x - right.x) + Math.abs(left.y - right.y) === 1;
+      }
+
+      function getDirectionKeyToward(from, to) {
+        const deltaX = to.x - from.x;
+        const deltaY = to.y - from.y;
+        return directionOrder.find((directionKey) => {
+          const direction = directions[directionKey];
+          return direction.dx === deltaX && direction.dy === deltaY;
+        }) || null;
+      }
+
+      function toggleMarkerVisibility() {
+        debug.showMarkers = !debug.showMarkers;
+        markerToggle.checked = debug.showMarkers;
+        statusLabel.textContent = debug.showMarkers ? "Anchor markers: ON" : "Anchor markers: OFF";
+      }
+
+      function triggerIdleCycle(now) {
+        if (player.moving) {
+          statusLabel.textContent = "Stop moving before forcing idle animation.";
+          return;
+        }
+        setAnimation("idle", now);
+        startCharacterIdleCycle(player, now);
+        statusLabel.textContent = "Manual idle cycle triggered.";
+      }
+
+      function resizeCanvas() {
+        const bounds = canvas.getBoundingClientRect();
+        scene.width = bounds.width;
+        scene.height = bounds.height;
+        scene.dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(bounds.width * scene.dpr);
+        canvas.height = Math.round(bounds.height * scene.dpr);
+        ctx.setTransform(scene.dpr, 0, 0, scene.dpr, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+      }
+
+      function activateControl(key, source) {
+        const sources = pressedControls.get(key) || new Set();
+        sources.add(source);
+        pressedControls.set(key, sources);
+        pressedAt.set(key, performance.now());
+        syncPadState();
+      }
+
+      function deactivateControl(key, source) {
+        const sources = pressedControls.get(key);
+        if (!sources) {
+          return;
+        }
+        sources.delete(source);
+        if (!sources.size) {
+          pressedControls.delete(key);
+        }
+        syncPadState();
+      }
+
+      function isPressed(key) {
+        return pressedControls.has(key);
+      }
+
+      function getActiveDirectionKey() {
+        let bestKey = null;
+        let bestTime = -Infinity;
+        for (const key of directionOrder) {
+          if (isPressed(key) && (pressedAt.get(key) || 0) >= bestTime) {
+            bestKey = key;
+            bestTime = pressedAt.get(key) || 0;
+          }
+        }
+        return bestKey;
+      }
+
+      function syncPadState() {
+        padButtons.forEach((button) => {
+          button.classList.toggle("is-active", isPressed(button.dataset.key));
+        });
+      }
+
+      function projectMap(gridX, gridY) {
+        const mapX = (gridX - gridY) * grid.tileWidth * 0.5;
+        const mapY = (gridX + gridY) * grid.tileHeight * 0.5;
+        return { x: mapX, y: mapY };
+      }
+
+      function screenProject(gridX, gridY) {
+        const position = projectMap(gridX, gridY);
+        return {
+          x: position.x + scene.width * 0.5 + camera.x,
+          y: position.y + scene.height * 0.28 + camera.y,
+        };
+      }
+
+      function worldSortValue(entity) {
+        const characterDepthBias = entity.kind === "player" || entity.kind === "majisto" ? 0.06 : 0.02;
+        return entity.y + entity.x + characterDepthBias;
+      }
+
+      function makeManifest() {
+        const manifest = [];
+        const directionsList = ["ur", "ul", "lr", "ll"];
+        const playerFrames = Array.from(new Set([...idleSequence, ...walkingSequence]));
+        const characters = [
+          { kind: "player", prefix: "Weliwel" },
+          { kind: "majisto", prefix: "Majisto" },
+        ];
+
+        for (const direction of directionsList) {
+          for (const character of characters) {
+            for (const frame of playerFrames) {
+              manifest.push({
+                kind: character.kind,
+                direction,
+                frame,
+                type: "player",
+                src: `Weliwel_Sprites/${character.prefix}_${frame}_${direction}.png`,
+              });
+            }
+          }
+
+          manifest.push({
+            kind: "tree",
+            direction,
+            type: "tree",
+            src: `Weliwel_Sprites/tree_${direction}.png`,
+          });
+
+          for (const flower of ["redflower", "whiteflower", "yellowflower"]) {
+            manifest.push({
+              kind: "flower",
+              flower,
+              direction,
+              type: "flower",
+              src: `Weliwel_Sprites/${flower}_${direction}.png`,
+            });
+          }
+        }
+
+        return manifest;
+      }
+
+      function isMatteCandidate(alpha, r, g, b, typeName = "default") {
+        const alphaCutoff = trimConfig.matteAlphaCutoffByType[typeName] ?? trimConfig.matteAlphaCutoffByType.default;
+        return (
+          alpha < alphaCutoff &&
+          r <= trimConfig.matteRgbCutoff &&
+          g <= trimConfig.matteRgbCutoff &&
+          b <= trimConfig.matteRgbCutoff
+        );
+      }
+
+      function computeSpriteMetrics(image, fallback) {
+        try {
+          const typeName = fallback.typeName || "default";
+          const probe = document.createElement("canvas");
+          probe.width = image.naturalWidth;
+          probe.height = image.naturalHeight;
+          const probeCtx = probe.getContext("2d", { willReadFrequently: true });
+          probeCtx.drawImage(image, 0, 0);
+          const pixels = probeCtx.getImageData(0, 0, probe.width, probe.height).data;
+          let minX = probe.width;
+          let minY = probe.height;
+          let maxX = 0;
+          let maxY = 0;
+          let found = false;
+
+          for (let y = 0; y < probe.height; y += 1) {
+            for (let x = 0; x < probe.width; x += 1) {
+              const index = (y * probe.width + x) * 4;
+              const r = pixels[index];
+              const g = pixels[index + 1];
+              const b = pixels[index + 2];
+              const alpha = pixels[index + 3];
+              const isRenderable = alpha >= trimConfig.alphaThreshold && !isMatteCandidate(alpha, r, g, b, typeName);
+              if (isRenderable) {
+                found = true;
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          if (!found) {
+            return {
+              bounds: fallback,
+              pivot: {
+                x: fallback.x + fallback.width * 0.5,
+                y: fallback.y + fallback.height,
+              },
+              referenceHeight: fallback.height,
+            };
+          }
+
+          const rawMinY = minY;
+          const rawMinX = minX;
+          const rawMaxX = maxX;
+          const rawMaxY = maxY;
+          const rawBounds = {
+            x: rawMinX,
+            y: rawMinY,
+            width: rawMaxX - rawMinX + 1,
+            height: rawMaxY - rawMinY + 1,
+          };
+
+          const extra = trimConfig.extraPaddingByType[typeName] || { x: 0, top: 0, bottom: 0 };
+          minX = Math.max(0, minX - trimConfig.paddingX - extra.x);
+          minY = Math.max(0, minY - trimConfig.paddingTop - extra.top);
+          maxX = Math.min(probe.width - 1, maxX + trimConfig.paddingX + extra.x);
+          maxY = Math.min(probe.height - 1, maxY + trimConfig.paddingBottom + extra.bottom);
+
+          const bounds = {
+            x: minX,
+            y: minY,
+            width: maxX - minX + 1,
+            height: maxY - minY + 1,
+          };
+
+          let pivotX = bounds.x + bounds.width * (trimConfig.pivotXFactorByType[typeName] ?? 0.5);
+          let pivotY = bounds.y + bounds.height * (trimConfig.pivotYFactorByType[typeName] ?? 0.9);
+          let referenceHeight = bounds.height;
+
+          if (typeName === "flower") {
+            // Guarantee full flower rendering: use the entire source image as draw bounds.
+            bounds.x = 0;
+            bounds.y = 0;
+            bounds.width = probe.width;
+            bounds.height = probe.height;
+            referenceHeight = rawBounds.height;
+
+            // Anchor flowers from the lowest visible base pixels.
+            const searchStartY = Math.max(rawMinY, rawMaxY - 20);
+            let sumX = 0;
+            let sumY = 0;
+            let count = 0;
+            for (let y = searchStartY; y <= rawMaxY; y += 1) {
+              for (let x = rawMinX; x <= rawMaxX; x += 1) {
+                const index = (y * probe.width + x) * 4;
+                const r = pixels[index];
+                const g = pixels[index + 1];
+                const b = pixels[index + 2];
+                const alpha = pixels[index + 3];
+                const isRenderable = alpha >= trimConfig.alphaThreshold && !isMatteCandidate(alpha, r, g, b, typeName);
+                const isBasePixel = isRenderable && (g >= r + 6 || alpha >= 42);
+                if (isBasePixel) {
+                  sumX += x;
+                  sumY += y;
+                  count += 1;
+                }
+              }
+            }
+
+            if (count > 8) {
+              pivotX = sumX / count;
+              pivotY = sumY / count;
+            } else {
+              pivotX = rawBounds.x + rawBounds.width * 0.5;
+              pivotY = rawBounds.y + rawBounds.height;
+            }
+          }
+
+          return {
+            bounds,
+            pivot: {
+              x: pivotX,
+              y: pivotY,
+            },
+            referenceHeight,
+          };
+        } catch (error) {
+          return {
+            bounds: fallback,
+            pivot: {
+              x: fallback.x + fallback.width * 0.5,
+              y: fallback.y + fallback.height,
+            },
+            referenceHeight: fallback.height,
+          };
+        }
+      }
+
+      function loadSprite(entry) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.onload = () => {
+            const fallback = fallbackBounds[entry.type];
+            let metrics = computeSpriteMetrics(image, fallback);
+
+            if (entry.kind === "player" || entry.kind === "majisto") {
+              const profile = characterRenderProfiles[entry.kind];
+              const source = profile?.sourceByDirection?.[entry.direction];
+              const pivot = profile?.pivotByDirection?.[entry.direction];
+              const referenceHeight = profile?.referenceHeightByDirection?.[entry.direction];
+              if (source && pivot && referenceHeight) {
+                metrics = {
+                  bounds: source,
+                  pivot,
+                  referenceHeight,
+                };
+              }
+            }
+
+            if (entry.kind === "flower") {
+              const source = flowerSourceByDirection[entry.direction];
+              const pivot = flowerPivotByDirection[entry.direction];
+              if (source && pivot) {
+                metrics = {
+                  bounds: source,
+                  pivot,
+                  referenceHeight: source.height,
+                };
+              }
+            }
+            resolve({
+              ...entry,
+              image,
+              bounds: metrics.bounds,
+              pivot: metrics.pivot,
+              referenceHeight: metrics.referenceHeight,
+            });
+          };
+          image.onerror = () => reject(new Error(`Could not load ${entry.src}`));
+          image.src = entry.src;
+        });
+      }
+
+      async function preloadAssets() {
+        const manifest = makeManifest();
+        const loaded = await Promise.all(manifest.map(loadSprite));
+
+        for (const sprite of loaded) {
+          if (sprite.kind === "player" || sprite.kind === "majisto") {
+            assets[sprite.kind][sprite.direction] ||= {};
+            assets[sprite.kind][sprite.direction][sprite.frame] = sprite;
+            continue;
+          }
+
+          if (sprite.kind === "tree") {
+            assets.tree[sprite.direction] = sprite;
+            continue;
+          }
+
+          assets.flowers[sprite.flower] ||= {};
+          assets.flowers[sprite.flower][sprite.direction] = sprite;
+        }
+      }
+
+      function getCurrentCharacterFrame(character) {
+        if (character.animation === "walking") {
+          return walkingSequence[character.frameIndex % walkingSequence.length];
+        }
+        return character.idleFrame;
+      }
+
+      function getCurrentPlayerFrame() {
+        return getCurrentCharacterFrame(player);
+      }
+
+      function getCurrentMajistoFrame() {
+        return getCurrentCharacterFrame(majisto);
+      }
+
+      function setCharacterAnimation(character, animation, now) {
+        if (character.animation === animation) {
+          return;
+        }
+        character.animation = animation;
+        character.frameIndex = 0;
+        character.frameTimer = 0;
+        if (animation === "walking") {
+          character.idleFrame = "Idle_1";
+          character.idleCycleActive = false;
+          return;
+        }
+        character.idleFrame = "Idle_1";
+        character.idleCycleActive = false;
+        character.idleCycleIndex = 0;
+        scheduleNextIdleCycle(character, now ?? performance.now());
+      }
+
+      function setAnimation(animation, now) {
+        setCharacterAnimation(player, animation, now);
+      }
+
+      function setMajistoAnimation(animation, now) {
+        setCharacterAnimation(majisto, animation, now);
+      }
+
+      function stepCharacterAnimation(character, deltaMs, now) {
+        if (character.animation === "walking") {
+          const duration = 86;
+          character.frameTimer += deltaMs;
+
+          while (character.frameTimer >= duration) {
+            character.frameTimer -= duration;
+            character.frameIndex += 1;
+            if (character.frameIndex >= walkingSequence.length) {
+              character.frameIndex = 0;
+            }
+          }
+          return;
+        }
+
+        if (!character.idleCycleActive) {
+          character.idleFrame = "Idle_1";
+          if (now >= character.nextIdleCycleAt) {
+            startCharacterIdleCycle(character, now);
+          }
+          return;
+        }
+
+        const duration = 230;
+        character.frameTimer += deltaMs;
+        while (character.frameTimer >= duration) {
+          character.frameTimer -= duration;
+          character.idleCycleIndex += 1;
+          if (character.idleCycleIndex >= idleCycleSequence.length) {
+            character.idleCycleActive = false;
+            character.idleCycleIndex = 0;
+            character.idleFrame = "Idle_1";
+            scheduleNextIdleCycle(character, now);
+            return;
+          }
+          character.idleFrame = idleCycleSequence[character.idleCycleIndex];
+        }
+      }
+
+      function stepAnimation(deltaMs, now) {
+        stepCharacterAnimation(player, deltaMs, now);
+      }
+
+      function stepMajistoAnimation(deltaMs, now) {
+        stepCharacterAnimation(majisto, deltaMs, now);
+      }
+
+      function getBlockingCharacterAt(nextX, nextY, movingCharacter) {
+        if (movingCharacter !== player && player.x === nextX && player.y === nextY) {
+          return { state: player, label: "Weliwel" };
+        }
+        if (movingCharacter !== majisto && majisto.x === nextX && majisto.y === nextY) {
+          return { state: majisto, label: "Majisto" };
+        }
+        return null;
+      }
+
+      function tryStartCharacterMove(character, directionKey, now) {
+        const direction = directions[directionKey];
+        if (!direction) {
+          return { moved: false };
+        }
+
+        character.direction = direction.sprite;
+        const nextX = character.x + direction.dx;
+        const nextY = character.y + direction.dy;
+        const outOfBounds = nextX < 0 || nextY < 0 || nextX >= grid.width || nextY >= grid.height;
+        const targetKey = tileKey(nextX, nextY);
+        const blockingObject = outOfBounds ? null : occupancy.get(targetKey);
+        const blockingCharacter = outOfBounds ? null : getBlockingCharacterAt(nextX, nextY, character);
+
+        if (outOfBounds || blockingObject || blockingCharacter) {
+          return {
+            moved: false,
+            nextX,
+            nextY,
+            outOfBounds,
+            blockingObject,
+            blockingCharacter,
+          };
+        }
+
+        character.fromX = character.renderX;
+        character.fromY = character.renderY;
+        character.toX = nextX;
+        character.toY = nextY;
+        character.x = nextX;
+        character.y = nextY;
+        character.moveStartedAt = now;
+        character.moving = true;
+        setCharacterAnimation(character, "walking", now);
+        return {
+          moved: true,
+          nextX,
+          nextY,
+        };
+      }
+
+      function tryStartMove(directionKey, now) {
+        const result = tryStartCharacterMove(player, directionKey, now);
+        if (!result.moved) {
+          player.blockedUntil = now + 520;
+          setAnimation("idle", now);
+          stateLabel.textContent = "Idle";
+          statusLabel.textContent = result.blockingObject
+            ? `${result.blockingObject.label} blocks that tile.`
+            : result.blockingCharacter
+            ? `${result.blockingCharacter.label} blocks that tile.`
+            : "The edge of the map blocks that tile.";
+          hintLabel.textContent = result.blockingObject
+            ? `Collision active: ${result.blockingObject.label} occupies (${result.nextX}, ${result.nextY}).`
+            : result.blockingCharacter
+            ? `${result.blockingCharacter.label} is occupying (${result.nextX}, ${result.nextY}).`
+            : "Weliwel cannot move outside the garden grid.";
+          updateReadout();
+          return false;
+        }
+
+        stateLabel.textContent = "Walking";
+        statusLabel.textContent = "Walking...";
+        hintLabel.textContent = "Hold a direction to keep moving through the clearing.";
+        updateReadout();
+        return true;
+      }
+
+      function tryStartMajistoMove(directionKey, now) {
+        const result = tryStartCharacterMove(majisto, directionKey, now);
+        if (!result.moved) {
+          majisto.blockedUntil = now + 420;
+          setMajistoAnimation("idle", now);
+          return false;
+        }
+        return true;
+      }
+
+      function updateMovement(now) {
+        const activeDirection = getActiveDirectionKey();
+
+        if (!player.moving) {
+          player.renderX = player.x;
+          player.renderY = player.y;
+          if (activeDirection) {
+            tryStartMove(activeDirection, now);
+          } else {
+            setAnimation("idle", now);
+            if (player.blockedUntil && now > player.blockedUntil) {
+              player.blockedUntil = 0;
+              statusLabel.textContent = "Ready to move.";
+            }
+          }
+          return;
+        }
+
+        const elapsed = now - player.moveStartedAt;
+        const progress = clamp(elapsed / player.moveDuration, 0, 1);
+        const eased = easeInOutSine(progress);
+        player.renderX = player.fromX + (player.toX - player.fromX) * eased;
+        player.renderY = player.fromY + (player.toY - player.fromY) * eased;
+
+        if (progress >= 1) {
+          player.moving = false;
+          player.renderX = player.toX;
+          player.renderY = player.toY;
+
+          if (!(activeDirection && tryStartMove(activeDirection, now))) {
+            setAnimation("idle", now);
+            stateLabel.textContent = "Idle";
+            statusLabel.textContent = "Ready to move.";
+          }
+        }
+      }
+
+      function scheduleMajistoIdle(now, minDelay = 900, maxDelay = 2800) {
+        majisto.aiDirectionKey = null;
+        majisto.aiWalkUntil = 0;
+        majisto.aiDecisionAt = now + randomBetween(minDelay, maxDelay);
+        setMajistoAnimation("idle", now);
+      }
+
+      function scheduleMajistoWalk(now, directionKey = null) {
+        majisto.aiDirectionKey = directionKey || pickRandomDirection();
+        majisto.aiWalkUntil = now + randomBetween(1100, 3600);
+        if (majisto.aiDecisionAt < now) {
+          majisto.aiDecisionAt = now;
+        }
+      }
+
+      function maybeMajistoRespondToWeliwelIdle(now) {
+        if (majisto.moving || !player.idleCycleActive) {
+          return false;
+        }
+        if (player.idleCycleRunId <= 0 || majisto.lastRespondedPlayerIdleRunId === player.idleCycleRunId) {
+          return false;
+        }
+        if (!areCharactersAdjacent(majisto, player)) {
+          return false;
+        }
+
+        const lookDirectionKey = getDirectionKeyToward(majisto, player);
+        if (lookDirectionKey) {
+          majisto.direction = directions[lookDirectionKey].sprite;
+        }
+        majisto.aiDirectionKey = null;
+        majisto.aiWalkUntil = 0;
+        majisto.aiDecisionAt = now + randomBetween(1400, 3400);
+        majisto.lastRespondedPlayerIdleRunId = player.idleCycleRunId;
+        startCharacterIdleCycle(majisto, now);
+        return true;
+      }
+
+      function maybePickMajistoBehavior(now) {
+        if (majisto.aiDirectionKey || now < majisto.aiDecisionAt) {
+          return;
+        }
+        if (Math.random() < 0.45) {
+          scheduleMajistoIdle(now, 1300, 5400);
+          return;
+        }
+        scheduleMajistoWalk(now);
+      }
+
+      function attemptMajistoMove(now, maxAttempts = 3) {
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          if (!majisto.aiDirectionKey) {
+            return false;
+          }
+          if (tryStartMajistoMove(majisto.aiDirectionKey, now)) {
+            return true;
+          }
+          if (Math.random() < 0.5) {
+            scheduleMajistoIdle(now, 700, 1900);
+            return false;
+          }
+          scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
+        }
+        scheduleMajistoIdle(now, 700, 1700);
+        return false;
+      }
+
+      function updateMajistoMovement(now) {
+        if (!majisto.moving) {
+          majisto.renderX = majisto.x;
+          majisto.renderY = majisto.y;
+
+          if (maybeMajistoRespondToWeliwelIdle(now)) {
+            return;
+          }
+
+          if (majisto.aiDirectionKey && now >= majisto.aiWalkUntil) {
+            if (Math.random() < 0.5) {
+              scheduleMajistoIdle(now, 900, 2600);
+              return;
+            }
+            scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
+          }
+
+          maybePickMajistoBehavior(now);
+
+          if (!majisto.aiDirectionKey) {
+            setMajistoAnimation("idle", now);
+            return;
+          }
+
+          if (!attemptMajistoMove(now, 3)) {
+            setMajistoAnimation("idle", now);
+          }
+          return;
+        }
+
+        const elapsed = now - majisto.moveStartedAt;
+        const progress = clamp(elapsed / majisto.moveDuration, 0, 1);
+        const eased = easeInOutSine(progress);
+        majisto.renderX = majisto.fromX + (majisto.toX - majisto.fromX) * eased;
+        majisto.renderY = majisto.fromY + (majisto.toY - majisto.fromY) * eased;
+
+        if (progress >= 1) {
+          majisto.moving = false;
+          majisto.renderX = majisto.toX;
+          majisto.renderY = majisto.toY;
+
+          if (!majisto.aiDirectionKey || now >= majisto.aiWalkUntil) {
+            if (Math.random() < 0.55) {
+              scheduleMajistoIdle(now, 850, 2600);
+              return;
+            }
+            scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
+          }
+
+          if (!attemptMajistoMove(now, 2)) {
+            setMajistoAnimation("idle", now);
+          }
+        }
+      }
+
+      function updateCamera() {
+        const anchor = projectMap(player.renderX, player.renderY);
+        const targetX = -anchor.x;
+        const targetY = scene.height * 0.22 - anchor.y;
+        camera.x += (targetX - camera.x) * 0.12;
+        camera.y += (targetY - camera.y) * 0.12;
+      }
+
+      function updateReadout() {
+        facingLabel.textContent =
+          Object.values(directions).find((direction) => direction.sprite === player.direction)?.label || "Upper-right";
+        tileLabel.textContent = `(${player.x}, ${player.y})`;
+      }
+
+      function getMarkerRadius(entityKind) {
+        if (entityKind === "player" || entityKind === "majisto") {
+          return { x: 17, y: 8, alpha: 0.17 };
+        }
+        if (entityKind === "tree") {
+          return { x: 18, y: 9, alpha: 0.14 };
+        }
+        return { x: 12, y: 6, alpha: 0.14 };
+      }
+
+      function drawBackground() {
+        ctx.clearRect(0, 0, scene.width, scene.height);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, scene.height);
+        sky.addColorStop(0, "#d9f7ef");
+        sky.addColorStop(0.56, "#9fd5a5");
+        sky.addColorStop(1, "#5a9464");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, scene.width, scene.height);
+
+        ctx.fillStyle = "rgba(255, 249, 214, 0.5)";
+        ctx.beginPath();
+        ctx.arc(scene.width * 0.12, scene.height * 0.12, 66, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.16)";
+        ctx.beginPath();
+        ctx.ellipse(scene.width * 0.22, scene.height * 0.15, 110, 28, 0.1, 0, Math.PI * 2);
+        ctx.ellipse(scene.width * 0.52, scene.height * 0.2, 140, 32, -0.04, 0, Math.PI * 2);
+        ctx.ellipse(scene.width * 0.74, scene.height * 0.12, 90, 24, 0.02, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawTile(centerX, centerY, fill) {
+        const halfW = grid.tileWidth * 0.5;
+        const halfH = grid.tileHeight * 0.5;
+        const depth = grid.tileDepth;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - halfH);
+        ctx.lineTo(centerX + halfW, centerY);
+        ctx.lineTo(centerX, centerY + halfH);
+        ctx.lineTo(centerX - halfW, centerY);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(centerX - halfW, centerY);
+        ctx.lineTo(centerX, centerY + halfH);
+        ctx.lineTo(centerX, centerY + halfH + depth);
+        ctx.lineTo(centerX - halfW, centerY + depth);
+        ctx.closePath();
+        ctx.fillStyle = shade(fill, -18);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(centerX + halfW, centerY);
+        ctx.lineTo(centerX, centerY + halfH);
+        ctx.lineTo(centerX, centerY + halfH + depth);
+        ctx.lineTo(centerX + halfW, centerY + depth);
+        ctx.closePath();
+        ctx.fillStyle = shade(fill, -28);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - halfH);
+        ctx.lineTo(centerX + halfW, centerY);
+        ctx.lineTo(centerX, centerY + halfH);
+        ctx.lineTo(centerX - halfW, centerY);
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      function shade(hex, amount) {
+        const value = hex.replace("#", "");
+        const number = Number.parseInt(value, 16);
+        const r = clamp(((number >> 16) & 255) + amount, 0, 255);
+        const g = clamp(((number >> 8) & 255) + amount, 0, 255);
+        const b = clamp((number & 255) + amount, 0, 255);
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function drawGround() {
+        ctx.save();
+        ctx.shadowColor = "rgba(11, 25, 17, 0.22)";
+        ctx.shadowBlur = 22;
+        ctx.shadowOffsetY = 18;
+        for (let y = 0; y < grid.height; y += 1) {
+          for (let x = 0; x < grid.width; x += 1) {
+            const position = screenProject(x, y);
+            drawTile(position.x, position.y, tileTone[y][x]);
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawLocationMarker(anchorX, anchorY, radiusX, radiusY, alpha) {
+        ctx.fillStyle = `rgba(7, 18, 13, ${alpha})`;
+        ctx.beginPath();
+        ctx.ellipse(anchorX, anchorY, radiusX, radiusY, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawSprite(sprite, anchorX, anchorY, targetHeight) {
+        const source = sprite.bounds;
+        const referenceHeight = sprite.referenceHeight || source.height;
+        const scale = targetHeight / referenceHeight;
+        const targetWidth = source.width * scale;
+        const pivotX = (sprite.pivot?.x ?? source.x + source.width * 0.5) - source.x;
+        const pivotY = (sprite.pivot?.y ?? source.y + source.height) - source.y;
+        ctx.drawImage(
+          sprite.image,
+          source.x,
+          source.y,
+          source.width,
+          source.height,
+          anchorX - pivotX * scale,
+          anchorY - pivotY * scale,
+          targetWidth,
+          targetHeight
+        );
+      }
+
+      function drawEntities() {
+        const entities = [
+          ...worldObjects.map((object) => ({
+            kind: object.kind,
+            x: object.x,
+            y: object.y,
+            object,
+          })),
+          {
+            kind: "player",
+            x: player.renderX,
+            y: player.renderY,
+          },
+          {
+            kind: "majisto",
+            x: majisto.renderX,
+            y: majisto.renderY,
+          },
+        ].sort((left, right) => worldSortValue(left) - worldSortValue(right));
+
+        for (const entity of entities) {
+          const position = screenProject(entity.x, entity.y);
+          const anchorX = position.x;
+          const anchorY = position.y + grid.tileHeight * 0.18;
+
+          if (entity.kind === "player" || entity.kind === "majisto") {
+            const isWeliwel = entity.kind === "player";
+            const character = isWeliwel ? player : majisto;
+            const characterAssets = isWeliwel ? assets.player : assets.majisto;
+            const frame = isWeliwel ? getCurrentPlayerFrame() : getCurrentMajistoFrame();
+            const sprite = characterAssets[character.direction]?.[frame];
+            if (!sprite) {
+              continue;
+            }
+            if (debug.showMarkers) {
+              const marker = getMarkerRadius(entity.kind);
+              drawLocationMarker(anchorX, anchorY, marker.x, marker.y, marker.alpha);
+            }
+            drawSprite(sprite, anchorX, anchorY, 180);
+            continue;
+          }
+
+          const object = entity.object;
+          const sprite =
+            object.kind === "tree"
+              ? assets.tree[object.direction]
+              : assets.flowers[object.flower]?.[object.direction];
+
+          if (!sprite) {
+            continue;
+          }
+
+          if (debug.showMarkers) {
+            const marker = getMarkerRadius(object.kind);
+            drawLocationMarker(anchorX, anchorY, marker.x, marker.y, marker.alpha);
+          }
+          const baseHeight = object.kind === "tree" ? 192 : 108;
+          const renderOffsetY = trimConfig.renderOffsetYByType[object.kind] || 0;
+          drawSprite(sprite, anchorX, anchorY + renderOffsetY, baseHeight * object.scale);
+        }
+      }
+
+      function render() {
+        drawBackground();
+        ctx.save();
+        drawGround();
+        drawEntities();
+        ctx.restore();
+      }
+
+      function loop(now) {
+        const delta = previousFrameTime ? now - previousFrameTime : 16;
+        previousFrameTime = now;
+
+        if (isLoaded) {
+          updateMovement(now);
+          updateMajistoMovement(now);
+          updateCamera();
+          stepAnimation(delta, now);
+          stepMajistoAnimation(delta, now);
+          render();
+        } else {
+          render();
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      function wireKeyboard() {
+        window.addEventListener("keydown", (event) => {
+          if (event.code === "KeyC" && !event.repeat) {
+            event.preventDefault();
+            toggleMarkerVisibility();
+            return;
+          }
+
+          if (event.code === "KeyI" && !event.repeat) {
+            event.preventDefault();
+            triggerIdleCycle(performance.now());
+            return;
+          }
+
+          if (!(event.key in directions)) {
+            return;
+          }
+          event.preventDefault();
+          activateControl(event.key, "keyboard");
+        });
+
+        window.addEventListener("keyup", (event) => {
+          if (!(event.key in directions)) {
+            return;
+          }
+          event.preventDefault();
+          deactivateControl(event.key, "keyboard");
+        });
+
+        window.addEventListener("blur", () => {
+          directionOrder.forEach((key) => deactivateControl(key, "keyboard"));
+          directionOrder.forEach((key) => deactivateControl(key, "touch"));
+        });
+      }
+
+      function wireTouchControls() {
+        padButtons.forEach((button) => {
+          const key = button.dataset.key;
+
+          button.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            button.setPointerCapture(event.pointerId);
+            activateControl(key, "touch");
+          });
+
+          const release = (event) => {
+            event.preventDefault();
+            deactivateControl(key, "touch");
+          };
+
+          button.addEventListener("pointerup", release);
+          button.addEventListener("pointercancel", release);
+          button.addEventListener("pointerleave", release);
+        });
+      }
+
+      function wireDevControls() {
+        markerToggle.addEventListener("change", () => {
+          debug.showMarkers = markerToggle.checked;
+          render();
+        });
+      }
+
+      async function boot() {
+        resizeCanvas();
+        updateReadout();
+        render();
+        wireKeyboard();
+        wireTouchControls();
+        wireDevControls();
+
+        try {
+          await preloadAssets();
+          isLoaded = true;
+          player.idleFrame = "Idle_1";
+          majisto.idleFrame = "Idle_1";
+          const now = performance.now();
+          scheduleNextIdleCycle(player, now);
+          scheduleNextIdleCycle(majisto, now);
+          majisto.aiDecisionAt = now + randomBetween(500, 1400);
+          majisto.aiDirectionKey = null;
+          majisto.aiWalkUntil = 0;
+          stateLabel.textContent = "Idle";
+          hintLabel.textContent =
+            "Use arrows (or pad) to move Weliwel. Majisto chooses when to idle or walk on its own. C toggles markers, I triggers Weliwel idle.";
+          statusLabel.textContent = "Ready to move. Majisto is roaming.";
+        } catch (error) {
+          stateLabel.textContent = "Load failed";
+          hintLabel.textContent = "Some sprites could not be loaded from the Weliwel_Sprites folder.";
+          statusLabel.textContent = "Sprite loading failed.";
+          console.error(error);
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        render();
+      });
+
+      requestAnimationFrame(loop);
+      boot();
+    })();
+  </script>
+</body>
+</html>
