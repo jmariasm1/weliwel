@@ -9,13 +9,6 @@
       color-scheme: dark;
       --bg-top: #dff6ea;
       --bg-bottom: #8bb890;
-      --panel: rgba(14, 44, 28, 0.78);
-      --panel-border: rgba(224, 249, 227, 0.18);
-      --panel-text: #f5ffef;
-      --accent: #f9dc72;
-      --accent-2: #9fe2a7;
-      --danger: #ff957c;
-      --shadow: rgba(8, 21, 15, 0.34);
       --canvas-edge: rgba(255, 255, 255, 0.12);
       --page-font: "Trebuchet MS", "Aptos", "Segoe UI", sans-serif;
     }
@@ -32,183 +25,43 @@
       background:
         radial-gradient(circle at top, rgba(250, 255, 245, 0.88), rgba(255, 255, 255, 0) 38%),
         linear-gradient(180deg, var(--bg-top) 0%, #bedbb4 34%, var(--bg-bottom) 100%);
-      color: var(--panel-text);
       overflow: hidden;
     }
 
     body {
-      display: grid;
-      place-items: stretch;
+      overscroll-behavior: none;
     }
 
     .app-shell {
-      display: grid;
-      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-      gap: 20px;
-      width: 100%;
+      width: 100vw;
       height: 100vh;
-      padding: 20px;
+      height: 100dvh;
       opacity: 0;
-      transform: translateY(14px);
+      transform: translateY(12px);
       animation: settle 560ms ease forwards;
-    }
-
-    .panel {
-      backdrop-filter: blur(16px);
-      background: linear-gradient(180deg, rgba(19, 56, 37, 0.86), var(--panel));
-      border: 1px solid var(--panel-border);
-      border-radius: 24px;
-      padding: 22px 22px 18px;
-      box-shadow: 0 20px 40px rgba(15, 36, 25, 0.18);
-      display: grid;
-      gap: 16px;
-      align-content: start;
-    }
-
-    .eyebrow {
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.16em;
-      font-size: 0.75rem;
-      color: rgba(245, 255, 239, 0.72);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(2rem, 5vw, 2.8rem);
-      line-height: 0.95;
-      color: #fffbe8;
-    }
-
-    .lede,
-    .hint {
-      margin: 0;
-      line-height: 1.5;
-      color: rgba(245, 255, 239, 0.9);
-    }
-
-    .legend,
-    .stats {
-      display: grid;
-      gap: 10px;
-      margin: 0;
-    }
-
-    .legend-item,
-    .stat-item {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .swatch {
-      width: 16px;
-      height: 16px;
-      border-radius: 999px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
-    }
-
-    .swatch.safe {
-      background: linear-gradient(180deg, #9fe2a7, #5ba56f);
-    }
-
-    .swatch.blocked {
-      background: linear-gradient(180deg, #ffd2bf, #ff8666);
-    }
-
-    .swatch.player {
-      background: linear-gradient(180deg, #fff1a8, #d6a940);
-    }
-
-    .stat-label {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: rgba(245, 255, 239, 0.66);
-    }
-
-    .stat-value {
-      font-size: 1rem;
-      color: #ffffff;
-      font-weight: 700;
-      margin-top: 2px;
-    }
-
-    .dpad {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      color: rgba(245, 255, 239, 0.9);
-      font-size: 0.95rem;
-    }
-
-    .toggle input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent);
-      cursor: pointer;
-      margin: 0;
-    }
-
-    .pad-button {
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(249, 220, 114, 0.18), rgba(255, 255, 255, 0.05));
-      color: #fffbe8;
-      padding: 14px 12px;
-      font: inherit;
-      font-weight: 700;
-      display: grid;
-      gap: 4px;
-      place-items: center;
-      cursor: pointer;
-      touch-action: none;
-      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
-      user-select: none;
-    }
-
-    .pad-button small {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: rgba(255, 251, 232, 0.72);
-      letter-spacing: 0.03em;
-    }
-
-    .pad-button:hover,
-    .pad-button:focus-visible,
-    .pad-button.is-active {
-      transform: translateY(-1px);
-      border-color: rgba(255, 251, 232, 0.42);
-      background: linear-gradient(180deg, rgba(249, 220, 114, 0.3), rgba(255, 255, 255, 0.08));
-      outline: none;
     }
 
     .scene-shell {
       position: relative;
-      min-width: 0;
-      border-radius: 28px;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
+      isolation: isolate;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
       background:
         radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 30%),
         linear-gradient(180deg, rgba(244, 252, 244, 0.3), rgba(29, 59, 42, 0.12));
       border: 1px solid var(--canvas-edge);
-      box-shadow: 0 30px 60px rgba(15, 36, 25, 0.18);
-      isolation: isolate;
+    }
+
+    .scene-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 20%, rgba(5, 13, 9, 0.08) 100%);
     }
 
     #scene {
@@ -217,58 +70,85 @@
       display: block;
     }
 
-    .status-pill {
+    .touch-overlay {
       position: absolute;
-      left: 18px;
-      right: 18px;
-      top: 18px;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(20, 48, 33, 0.74);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(14px);
-      color: #f5ffef;
-      z-index: 1;
+      inset: 0;
       pointer-events: none;
     }
 
-    .status-pill strong {
-      color: #fffbe8;
+    .touch-corner,
+    .touch-center {
+      position: absolute;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 120ms ease, transform 120ms ease, box-shadow 120ms ease;
     }
 
-    @media (max-width: 980px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto minmax(0, 1fr);
-        height: 100dvh;
-      }
+    .touch-corner {
+      width: min(28vw, 28vh);
+      height: min(28vw, 28vh);
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0) 72%);
+    }
 
-      .panel {
-        gap: 14px;
+    .touch-corner.top-left {
+      top: max(16px, env(safe-area-inset-top));
+      left: max(16px, env(safe-area-inset-left));
+    }
+
+    .touch-corner.top-right {
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+    }
+
+    .touch-corner.bottom-right {
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .touch-corner.bottom-left {
+      bottom: max(16px, env(safe-area-inset-bottom));
+      left: max(16px, env(safe-area-inset-left));
+    }
+
+    .touch-center {
+      top: 50%;
+      left: 50%;
+      width: min(30vw, 30vh);
+      height: min(30vw, 30vh);
+      transform: translate(-50%, -50%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04) 56%, rgba(255, 255, 255, 0) 72%);
+    }
+
+    @media (pointer: coarse) {
+      .touch-corner,
+      .touch-center {
+        opacity: 0.16;
       }
+    }
+
+    .scene-shell.is-zone-top-left .touch-corner.top-left,
+    .scene-shell.is-zone-top-right .touch-corner.top-right,
+    .scene-shell.is-zone-bottom-right .touch-corner.bottom-right,
+    .scene-shell.is-zone-bottom-left .touch-corner.bottom-left,
+    .scene-shell.is-zone-center .touch-center {
+      opacity: 0.36;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+    }
+
+    .scene-shell.is-zone-center .touch-center {
+      transform: translate(-50%, -50%) scale(1.04);
     }
 
     @media (max-width: 640px) {
-      body {
-        overflow: auto;
+      .touch-corner {
+        width: min(36vw, 36vh);
+        height: min(36vw, 36vh);
       }
 
-      .app-shell {
-        padding: 14px;
-        gap: 14px;
-        min-height: 100dvh;
-      }
-
-      .scene-shell {
-        min-height: 58dvh;
-      }
-
-      .status-pill {
-        border-radius: 22px;
+      .touch-center {
+        width: min(38vw, 38vh);
+        height: min(38vw, 38vh);
       }
     }
 
@@ -282,98 +162,25 @@
 </head>
 <body>
   <main class="app-shell">
-    <section class="panel">
-      <p class="eyebrow">Orthogonal 3D View</p>
-      <h1>Weliwel & Majisto Walkabout</h1>
-      <p class="lede">
-        The arrow keys follow the diagonal world axes: up moves upper-right, right moves lower-right,
-        down moves lower-left, and left moves upper-left.
-      </p>
-
-      <div class="stats" aria-live="polite">
-        <div class="stat-item">
-          <div>
-            <div class="stat-label">Facing</div>
-            <div class="stat-value" id="facingLabel">Upper-right</div>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div>
-            <div class="stat-label">Tile Position</div>
-            <div class="stat-value" id="tileLabel">(2, 9)</div>
-          </div>
-        </div>
-        <div class="stat-item">
-          <div>
-            <div class="stat-label">Movement State</div>
-            <div class="stat-value" id="stateLabel">Loading sprites...</div>
-          </div>
-        </div>
+    <section class="scene-shell" id="sceneShell">
+      <canvas
+        id="scene"
+        aria-label="Isometric Weliwel and Majisto walking scene. Use arrow keys, or tap the top-left, top-right, bottom-right, and bottom-left corners to move Weliwel. Tap the middle to trigger Weliwel's idle animation."
+      ></canvas>
+      <div class="touch-overlay" aria-hidden="true">
+        <div class="touch-corner top-left"></div>
+        <div class="touch-corner top-right"></div>
+        <div class="touch-corner bottom-right"></div>
+        <div class="touch-corner bottom-left"></div>
+        <div class="touch-center"></div>
       </div>
-
-      <div class="legend">
-        <div class="legend-item">
-          <span class="swatch player" aria-hidden="true"></span>
-          <span>Weliwel is player-controlled, and Majisto roams autonomously with the same idle and walking loops.</span>
-        </div>
-        <div class="legend-item">
-          <span class="swatch blocked" aria-hidden="true"></span>
-          <span>Trees and flowers block movement, and Weliwel and Majisto also collide with each other.</span>
-        </div>
-        <div class="legend-item">
-          <span class="swatch safe" aria-hidden="true"></span>
-          <span>Open grass tiles are walkable. Hold a direction to keep moving across the garden.</span>
-        </div>
-      </div>
-
-      <div class="dpad" aria-label="Touch controls">
-        <button class="pad-button" data-key="ArrowUp" type="button">
-          <span>↗</span>
-          <small>Arrow Up</small>
-        </button>
-        <button class="pad-button" data-key="ArrowRight" type="button">
-          <span>↘</span>
-          <small>Arrow Right</small>
-        </button>
-        <button class="pad-button" data-key="ArrowLeft" type="button">
-          <span>↖</span>
-          <small>Arrow Left</small>
-        </button>
-        <button class="pad-button" data-key="ArrowDown" type="button">
-          <span>↙</span>
-          <small>Arrow Down</small>
-        </button>
-      </div>
-
-      <label class="toggle" for="markerToggle">
-        <input id="markerToggle" type="checkbox">
-        <span>Show location markers for development</span>
-      </label>
-
-      <p class="hint" id="hintLabel">
-        Loading sprite sheet...
-      </p>
-    </section>
-
-    <section class="scene-shell">
-      <div class="status-pill">
-        <span><strong>Weliwel</strong> follows your keys while <strong>Majisto</strong> wanders on its own.</span>
-        <span id="statusLabel">Preparing the garden...</span>
-      </div>
-      <canvas id="scene" aria-label="Isometric Weliwel and Majisto walking scene"></canvas>
     </section>
   </main>
   <script>
     (() => {
+      const sceneShell = document.getElementById("sceneShell");
       const canvas = document.getElementById("scene");
       const ctx = canvas.getContext("2d");
-      const facingLabel = document.getElementById("facingLabel");
-      const tileLabel = document.getElementById("tileLabel");
-      const stateLabel = document.getElementById("stateLabel");
-      const hintLabel = document.getElementById("hintLabel");
-      const statusLabel = document.getElementById("statusLabel");
-      const markerToggle = document.getElementById("markerToggle");
-      const padButtons = Array.from(document.querySelectorAll(".pad-button"));
 
       const scene = {
         width: 0,
@@ -412,6 +219,28 @@
       const directionOrder = ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"];
       const pressedControls = new Map();
       const pressedAt = new Map();
+      const touchSource = "touch";
+      const touchZoneClassNames = ["is-zone-top-left", "is-zone-top-right", "is-zone-bottom-right", "is-zone-bottom-left", "is-zone-center"];
+      const touchZoneToDirectionKey = {
+        "top-left": "ArrowLeft",
+        "top-right": "ArrowUp",
+        "bottom-right": "ArrowRight",
+        "bottom-left": "ArrowDown",
+      };
+      const touchLayout = {
+        cornerWidthRatio: 0.28,
+        cornerHeightRatio: 0.28,
+        centerRadiusRatio: 0.18,
+        tapSlop: 18,
+      };
+      const activeTouchGesture = {
+        pointerId: null,
+        zone: null,
+        key: null,
+        mode: null,
+        startX: 0,
+        startY: 0,
+      };
 
       const assets = {
         player: {},
@@ -599,6 +428,7 @@
       };
 
       let isLoaded = false;
+      let pendingIdleCycle = false;
       let previousFrameTime = 0;
 
       function hashTile(x, y) {
@@ -659,18 +489,18 @@
 
       function toggleMarkerVisibility() {
         debug.showMarkers = !debug.showMarkers;
-        markerToggle.checked = debug.showMarkers;
-        statusLabel.textContent = debug.showMarkers ? "Anchor markers: ON" : "Anchor markers: OFF";
+        render();
       }
 
       function triggerIdleCycle(now) {
         if (player.moving) {
-          statusLabel.textContent = "Stop moving before forcing idle animation.";
-          return;
+          pendingIdleCycle = true;
+          return false;
         }
+        pendingIdleCycle = false;
         setAnimation("idle", now);
         startCharacterIdleCycle(player, now);
-        statusLabel.textContent = "Manual idle cycle triggered.";
+        return true;
       }
 
       function resizeCanvas() {
@@ -689,7 +519,6 @@
         sources.add(source);
         pressedControls.set(key, sources);
         pressedAt.set(key, performance.now());
-        syncPadState();
       }
 
       function deactivateControl(key, source) {
@@ -701,7 +530,6 @@
         if (!sources.size) {
           pressedControls.delete(key);
         }
-        syncPadState();
       }
 
       function isPressed(key) {
@@ -720,10 +548,60 @@
         return bestKey;
       }
 
-      function syncPadState() {
-        padButtons.forEach((button) => {
-          button.classList.toggle("is-active", isPressed(button.dataset.key));
-        });
+      function setActiveTouchZone(zone) {
+        sceneShell.classList.remove(...touchZoneClassNames);
+        if (zone) {
+          sceneShell.classList.add(`is-zone-${zone}`);
+        }
+      }
+
+      function clearTouchGesture(releaseControl = true) {
+        if (releaseControl && activeTouchGesture.key) {
+          deactivateControl(activeTouchGesture.key, touchSource);
+        }
+        activeTouchGesture.pointerId = null;
+        activeTouchGesture.zone = null;
+        activeTouchGesture.key = null;
+        activeTouchGesture.mode = null;
+        activeTouchGesture.startX = 0;
+        activeTouchGesture.startY = 0;
+        setActiveTouchZone(null);
+      }
+
+      function getTouchZone(clientX, clientY) {
+        const bounds = sceneShell.getBoundingClientRect();
+        const localX = clientX - bounds.left;
+        const localY = clientY - bounds.top;
+        if (localX < 0 || localY < 0 || localX > bounds.width || localY > bounds.height) {
+          return null;
+        }
+
+        const cornerWidth = bounds.width * touchLayout.cornerWidthRatio;
+        const cornerHeight = bounds.height * touchLayout.cornerHeightRatio;
+        const centerDistance = Math.hypot(localX - bounds.width * 0.5, localY - bounds.height * 0.5);
+        if (centerDistance <= Math.min(bounds.width, bounds.height) * touchLayout.centerRadiusRatio) {
+          return "center";
+        }
+        if (localX <= cornerWidth && localY <= cornerHeight) {
+          return "top-left";
+        }
+        if (localX >= bounds.width - cornerWidth && localY <= cornerHeight) {
+          return "top-right";
+        }
+        if (localX >= bounds.width - cornerWidth && localY >= bounds.height - cornerHeight) {
+          return "bottom-right";
+        }
+        if (localX <= cornerWidth && localY >= bounds.height - cornerHeight) {
+          return "bottom-left";
+        }
+        return null;
+      }
+
+      function startTouchMove(directionKey, now) {
+        activateControl(directionKey, touchSource);
+        if (!player.moving) {
+          tryStartMove(directionKey, now);
+        }
       }
 
       function projectMap(gridX, gridY) {
@@ -1139,25 +1017,8 @@
         if (!result.moved) {
           player.blockedUntil = now + 520;
           setAnimation("idle", now);
-          stateLabel.textContent = "Idle";
-          statusLabel.textContent = result.blockingObject
-            ? `${result.blockingObject.label} blocks that tile.`
-            : result.blockingCharacter
-            ? `${result.blockingCharacter.label} blocks that tile.`
-            : "The edge of the map blocks that tile.";
-          hintLabel.textContent = result.blockingObject
-            ? `Collision active: ${result.blockingObject.label} occupies (${result.nextX}, ${result.nextY}).`
-            : result.blockingCharacter
-            ? `${result.blockingCharacter.label} is occupying (${result.nextX}, ${result.nextY}).`
-            : "Weliwel cannot move outside the garden grid.";
-          updateReadout();
           return false;
         }
-
-        stateLabel.textContent = "Walking";
-        statusLabel.textContent = "Walking...";
-        hintLabel.textContent = "Hold a direction to keep moving through the clearing.";
-        updateReadout();
         return true;
       }
 
@@ -1180,10 +1041,13 @@
           if (activeDirection) {
             tryStartMove(activeDirection, now);
           } else {
+            if (pendingIdleCycle) {
+              triggerIdleCycle(now);
+              return;
+            }
             setAnimation("idle", now);
             if (player.blockedUntil && now > player.blockedUntil) {
               player.blockedUntil = 0;
-              statusLabel.textContent = "Ready to move.";
             }
           }
           return;
@@ -1201,9 +1065,11 @@
           player.renderY = player.toY;
 
           if (!(activeDirection && tryStartMove(activeDirection, now))) {
-            setAnimation("idle", now);
-            stateLabel.textContent = "Idle";
-            statusLabel.textContent = "Ready to move.";
+            if (pendingIdleCycle) {
+              triggerIdleCycle(now);
+            } else {
+              setAnimation("idle", now);
+            }
           }
         }
       }
@@ -1336,12 +1202,6 @@
         const targetY = scene.height * 0.22 - anchor.y;
         camera.x += (targetX - camera.x) * 0.12;
         camera.y += (targetY - camera.y) * 0.12;
-      }
-
-      function updateReadout() {
-        facingLabel.textContent =
-          Object.values(directions).find((direction) => direction.sprite === player.direction)?.label || "Upper-right";
-        tileLabel.textContent = `(${player.x}, ${player.y})`;
       }
 
       function getMarkerRadius(entityKind) {
@@ -1589,45 +1449,78 @@
 
         window.addEventListener("blur", () => {
           directionOrder.forEach((key) => deactivateControl(key, "keyboard"));
-          directionOrder.forEach((key) => deactivateControl(key, "touch"));
+          directionOrder.forEach((key) => deactivateControl(key, touchSource));
+          clearTouchGesture(false);
         });
       }
 
       function wireTouchControls() {
-        padButtons.forEach((button) => {
-          const key = button.dataset.key;
+        sceneShell.addEventListener("pointerdown", (event) => {
+          if (!event.isPrimary) {
+            return;
+          }
+          if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
+          }
+          if (activeTouchGesture.pointerId !== null) {
+            return;
+          }
 
-          button.addEventListener("pointerdown", (event) => {
-            event.preventDefault();
-            button.setPointerCapture(event.pointerId);
-            activateControl(key, "touch");
-          });
+          const zone = getTouchZone(event.clientX, event.clientY);
+          if (!zone) {
+            return;
+          }
 
-          const release = (event) => {
-            event.preventDefault();
-            deactivateControl(key, "touch");
-          };
+          event.preventDefault();
+          sceneShell.setPointerCapture(event.pointerId);
+          activeTouchGesture.pointerId = event.pointerId;
+          activeTouchGesture.zone = zone;
+          activeTouchGesture.key = touchZoneToDirectionKey[zone] || null;
+          activeTouchGesture.mode = activeTouchGesture.key ? "move" : "idle";
+          activeTouchGesture.startX = event.clientX;
+          activeTouchGesture.startY = event.clientY;
+          setActiveTouchZone(zone);
 
-          button.addEventListener("pointerup", release);
-          button.addEventListener("pointercancel", release);
-          button.addEventListener("pointerleave", release);
+          if (activeTouchGesture.key) {
+            startTouchMove(activeTouchGesture.key, performance.now());
+          }
         });
-      }
 
-      function wireDevControls() {
-        markerToggle.addEventListener("change", () => {
-          debug.showMarkers = markerToggle.checked;
-          render();
+        sceneShell.addEventListener("pointerup", (event) => {
+          if (event.pointerId !== activeTouchGesture.pointerId) {
+            return;
+          }
+
+          event.preventDefault();
+          const movement = Math.hypot(event.clientX - activeTouchGesture.startX, event.clientY - activeTouchGesture.startY);
+          const shouldTriggerIdle = activeTouchGesture.mode === "idle" && movement <= touchLayout.tapSlop;
+          clearTouchGesture();
+          if (shouldTriggerIdle) {
+            triggerIdleCycle(performance.now());
+          }
+        });
+
+        sceneShell.addEventListener("pointercancel", (event) => {
+          if (event.pointerId !== activeTouchGesture.pointerId) {
+            return;
+          }
+
+          event.preventDefault();
+          clearTouchGesture();
+        });
+
+        sceneShell.addEventListener("lostpointercapture", () => {
+          if (activeTouchGesture.pointerId !== null) {
+            clearTouchGesture();
+          }
         });
       }
 
       async function boot() {
         resizeCanvas();
-        updateReadout();
         render();
         wireKeyboard();
         wireTouchControls();
-        wireDevControls();
 
         try {
           await preloadAssets();
@@ -1640,14 +1533,7 @@
           majisto.aiDecisionAt = now + randomBetween(500, 1400);
           majisto.aiDirectionKey = null;
           majisto.aiWalkUntil = 0;
-          stateLabel.textContent = "Idle";
-          hintLabel.textContent =
-            "Use arrows (or pad) to move Weliwel. Majisto chooses when to idle or walk on its own. C toggles markers, I triggers Weliwel idle.";
-          statusLabel.textContent = "Ready to move. Majisto is roaming.";
         } catch (error) {
-          stateLabel.textContent = "Load failed";
-          hintLabel.textContent = "Some sprites could not be loaded from the Weliwel_Sprites folder.";
-          statusLabel.textContent = "Sprite loading failed.";
           console.error(error);
         }
       }
