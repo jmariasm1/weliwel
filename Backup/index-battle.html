@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brick Garden Duel</title>
+  <link rel="stylesheet" href="battle-demo.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="scene-shell" id="sceneShell">
+      <canvas
+        id="scene"
+        aria-label="Brick Garden Duel tactical battle. Use arrow keys to move the cursor through the isometric battlefield, Enter or Space to confirm, Escape to cancel, and click or tap tiles and HUD buttons to act."
+      ></canvas>
+      <div class="hud-root">
+        <header class="battle-banner panel">
+          <div class="brand">Brick Garden Duel</div>
+          <div class="banner-meta">
+            <div>
+              <span class="label">Phase</span>
+              <strong id="phaseLabel">Loading battle</strong>
+            </div>
+            <div>
+              <span class="label">Round</span>
+              <strong id="roundLabel">1</strong>
+            </div>
+            <div>
+              <span class="label">Prompt</span>
+              <strong id="statusLine">Preloading tactical systems and LEGO combatants.</strong>
+            </div>
+          </div>
+        </header>
+
+        <section class="turn-strip panel" id="turnRibbon" aria-label="Turn order"></section>
+
+        <aside class="unit-card panel hero-card" id="heroPanel"></aside>
+        <aside class="unit-card panel enemy-card" id="enemyPanel"></aside>
+
+        <section class="action-panel panel">
+          <div class="action-header">
+            <div class="action-title" id="actionTitle">Battle Controls</div>
+            <div class="action-subtitle" id="actionSubtitle">Choose where Weliwel will move, then confirm.</div>
+          </div>
+          <div class="action-grid" id="actionButtons"></div>
+          <div class="forecast-panel" id="forecastPanel">Forecast data will appear here once the duel starts.</div>
+          <div class="control-legend">
+            <span>Arrows: move cursor</span>
+            <span>Enter or Space: confirm</span>
+            <span>Escape: cancel</span>
+            <span>1-4: quick action</span>
+            <span>C: marker toggle</span>
+            <span>R: restart</span>
+          </div>
+        </section>
+
+        <section class="result-panel panel hidden" id="resultOverlay" aria-live="polite">
+          <div class="result-kicker" id="resultKicker">Battle complete</div>
+          <div class="result-title" id="resultTitle">The duel is over.</div>
+          <p id="resultBody">Restart to replay the encounter.</p>
+          <button class="hud-button primary" id="restartButton" type="button">
+            <span>Restart battle</span>
+            <span class="meta">R</span>
+          </button>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script src="battle-demo.js"></script>
+</body>
+</html>

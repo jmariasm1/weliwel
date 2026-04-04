@@ -181,7 +181,6 @@
       const sceneShell = document.getElementById("sceneShell");
       const canvas = document.getElementById("scene");
       const ctx = canvas.getContext("2d");
-      const touchOverlay = document.querySelector(".touch-overlay");
 
       const scene = {
         width: 0,
@@ -218,16 +217,9 @@
       ];
 
       const directionOrder = ["ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"];
-      const spriteDirections = ["ur", "ul", "lr", "ll"];
       const pressedControls = new Map();
       const pressedAt = new Map();
       const touchSource = "touch";
-      const sceneConfig = {
-        cameraFollowActorId: "weliwel",
-        primaryHumanActorId: "weliwel",
-        greetingHoldMin: 1400,
-        greetingHoldMax: 2600,
-      };
       const touchZoneClassNames = ["is-zone-top-left", "is-zone-top-right", "is-zone-bottom-right", "is-zone-bottom-left", "is-zone-center"];
       const touchZoneToDirectionKey = {
         "top-left": "ArrowLeft",
@@ -251,8 +243,10 @@
       };
 
       const assets = {
-        actors: {},
-        props: {},
+        player: {},
+        majisto: {},
+        tree: {},
+        flowers: {},
       };
 
       const debug = {
@@ -265,22 +259,22 @@
         paddingTop: 24,
         paddingBottom: 32,
         extraPaddingByType: {
-          humanoid: { x: 16, top: 28, bottom: 24 },
+          player: { x: 16, top: 28, bottom: 24 },
           tree: { x: 8, top: 6, bottom: 14 },
           flower: { x: 14, top: 12, bottom: 52 },
         },
         pivotYFactorByType: {
-          humanoid: 0.88,
+          player: 0.88,
           tree: 0.84,
           flower: 0.93,
         },
         pivotXFactorByType: {
-          humanoid: 0.5,
+          player: 0.5,
           tree: 0.5,
           flower: 0.5,
         },
         renderOffsetYByType: {
-          humanoid: 0,
+          player: 0,
           tree: 30,
           flower: 0,
         },
@@ -292,7 +286,7 @@
       };
 
       const fallbackBounds = {
-        humanoid: { x: 220, y: 80, width: 640, height: 770, typeName: "humanoid" },
+        player: { x: 220, y: 80, width: 640, height: 770, typeName: "player" },
         tree: { x: 190, y: 50, width: 700, height: 910, typeName: "tree" },
         flower: { x: 250, y: 250, width: 580, height: 520, typeName: "flower" },
       };
@@ -311,14 +305,14 @@
         ll: { x: 539.8, y: 844.04 },
       };
 
-      const weliwelSourceByDirection = {
+      const playerSourceByDirection = {
         ur: { x: 300, y: 0, width: 561, height: 816 },
         ul: { x: 35, y: 110, width: 745, height: 706 },
         lr: { x: 300, y: 150, width: 745, height: 725 },
         ll: { x: 219, y: 150, width: 561, height: 763 },
       };
 
-      const weliwelPivotByDirection = {
+      const playerPivotByDirection = {
         // Manual midpoint between both feet per direction (from idle reference poses).
         ur: { x: 605.56, y: 700.53 },
         ul: { x: 472.49, y: 700.51 },
@@ -326,7 +320,7 @@
         ll: { x: 526.65, y: 773.58 },
       };
 
-      const weliwelReferenceHeightByDirection = {
+      const playerReferenceHeightByDirection = {
         ur: 792,
         ul: 663,
         lr: 686,
@@ -356,23 +350,16 @@
         ll: 741,
       };
 
-      const renderProfiles = {
-        weliwel: {
-          sourceByDirection: weliwelSourceByDirection,
-          pivotByDirection: weliwelPivotByDirection,
-          referenceHeightByDirection: weliwelReferenceHeightByDirection,
+      const characterRenderProfiles = {
+        player: {
+          sourceByDirection: playerSourceByDirection,
+          pivotByDirection: playerPivotByDirection,
+          referenceHeightByDirection: playerReferenceHeightByDirection,
         },
         majisto: {
           sourceByDirection: majistoSourceByDirection,
           pivotByDirection: majistoPivotByDirection,
           referenceHeightByDirection: majistoReferenceHeightByDirection,
-        },
-        flowerPatch: {
-          sourceByDirection: flowerSourceByDirection,
-          pivotByDirection: flowerPivotByDirection,
-          referenceHeightByDirection: Object.fromEntries(
-            Object.entries(flowerSourceByDirection).map(([direction, source]) => [direction, source.height])
-          ),
         },
       };
 
@@ -381,112 +368,32 @@
         y: 0,
       };
 
-      const actorCatalog = {
-        weliwel: {
-          label: "Weliwel",
-          spritePrefix: "Weliwel",
-          metricsType: "humanoid",
-          renderProfileId: "weliwel",
-          baseHeight: 180,
-          controller: "wanderer",
-          canGreet: true,
-        },
-        majisto: {
-          label: "Majisto",
-          spritePrefix: "Majisto",
-          metricsType: "humanoid",
-          renderProfileId: "majisto",
-          baseHeight: 180,
-          controller: "wanderer",
-          canGreet: true,
-        },
-      };
+      const worldObjects = [
+        { kind: "tree", label: "Mint tree", x: 3, y: 2, direction: "ur", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 6, y: 2, direction: "ul", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 9, y: 3, direction: "ll", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 10, y: 6, direction: "lr", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 5, y: 8, direction: "ur", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "tree", label: "Mint tree", x: 8, y: 10, direction: "ul", solid: true, scale: 1.28, shadow: 0.92 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 2, y: 5, direction: "lr", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 4, y: 6, direction: "ur", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "whiteflower", label: "White flowers", x: 7, y: 5, direction: "ll", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 11, y: 4, direction: "ul", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 9, y: 8, direction: "lr", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "whiteflower", label: "White flowers", x: 3, y: 10, direction: "ur", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "redflower", label: "Red flowers", x: 6, y: 10, direction: "ll", solid: true, scale: 0.86, shadow: 0.56 },
+        { kind: "flower", flower: "yellowflower", label: "Yellow flowers", x: 1, y: 8, direction: "ul", solid: true, scale: 0.86, shadow: 0.56 },
+      ];
 
-      const propCatalog = {
-        mintTree: {
-          label: "Mint tree",
-          kind: "tree",
-          spritePrefix: "tree",
-          metricsType: "tree",
-          baseHeight: 192,
-          scale: 1.28,
-          shadow: 0.92,
-          solid: true,
-        },
-        redFlowers: {
-          label: "Red flowers",
-          kind: "flower",
-          spritePrefix: "redflower",
-          metricsType: "flower",
-          renderProfileId: "flowerPatch",
-          baseHeight: 108,
-          scale: 0.86,
-          shadow: 0.56,
-          solid: true,
-        },
-        yellowFlowers: {
-          label: "Yellow flowers",
-          kind: "flower",
-          spritePrefix: "yellowflower",
-          metricsType: "flower",
-          renderProfileId: "flowerPatch",
-          baseHeight: 108,
-          scale: 0.86,
-          shadow: 0.56,
-          solid: true,
-        },
-        whiteFlowers: {
-          label: "White flowers",
-          kind: "flower",
-          spritePrefix: "whiteflower",
-          metricsType: "flower",
-          renderProfileId: "flowerPatch",
-          baseHeight: 108,
-          scale: 0.86,
-          shadow: 0.56,
-          solid: true,
-        },
-      };
-
-      const sceneDefinition = {
-        actors: [
-          { id: "weliwel", actorType: "weliwel", x: 2, y: 9, direction: "ur" },
-          { id: "majisto", actorType: "majisto", x: 10, y: 9, direction: "ll" },
-        ],
-        props: [
-          { id: "mint-tree-1", propType: "mintTree", x: 3, y: 2, direction: "ur" },
-          { id: "mint-tree-2", propType: "mintTree", x: 6, y: 2, direction: "ul" },
-          { id: "mint-tree-3", propType: "mintTree", x: 9, y: 3, direction: "ll" },
-          { id: "mint-tree-4", propType: "mintTree", x: 10, y: 6, direction: "lr" },
-          { id: "mint-tree-5", propType: "mintTree", x: 5, y: 8, direction: "ur" },
-          { id: "mint-tree-6", propType: "mintTree", x: 8, y: 10, direction: "ul" },
-          { id: "red-flowers-1", propType: "redFlowers", x: 2, y: 5, direction: "lr" },
-          { id: "yellow-flowers-1", propType: "yellowFlowers", x: 4, y: 6, direction: "ur" },
-          { id: "white-flowers-1", propType: "whiteFlowers", x: 7, y: 5, direction: "ll" },
-          { id: "red-flowers-2", propType: "redFlowers", x: 11, y: 4, direction: "ul" },
-          { id: "yellow-flowers-2", propType: "yellowFlowers", x: 9, y: 8, direction: "lr" },
-          { id: "white-flowers-2", propType: "whiteFlowers", x: 3, y: 10, direction: "ur" },
-          { id: "red-flowers-3", propType: "redFlowers", x: 6, y: 10, direction: "ll" },
-          { id: "yellow-flowers-3", propType: "yellowFlowers", x: 1, y: 8, direction: "ul" },
-        ],
-      };
+      const occupancy = new Map(worldObjects.map((object) => [tileKey(object.x, object.y), object]));
 
       const terrainPalette = ["#7ab26e", "#89bc78", "#6ea864", "#9ecf8a"];
       const tileTone = Array.from({ length: grid.height }, (_, y) =>
         Array.from({ length: grid.width }, (_, x) => terrainPalette[Math.abs(hashTile(x, y)) % terrainPalette.length])
       );
 
-      function createCharacterState(x, y, direction, options = {}) {
+      function createCharacterState(x, y, direction) {
         return {
-          id: options.id || "character",
-          label: options.label || "Character",
-          actorType: options.actorType || "actor",
-          controller: options.controller || "human",
-          spritePrefix: options.spritePrefix || "Weliwel",
-          metricsType: options.metricsType || "humanoid",
-          renderProfileId: options.renderProfileId || null,
-          baseHeight: options.baseHeight || 180,
-          canGreet: options.canGreet ?? true,
           x,
           y,
           renderX: x,
@@ -508,159 +415,20 @@
           idleCycleRunId: 0,
           nextIdleCycleAt: Number.POSITIVE_INFINITY,
           blockedUntil: 0,
-          aiDirectionKey: null,
-          aiDecisionAt: 0,
-          aiWalkUntil: 0,
-          greetingUntil: 0,
-          greetingCycleToken: 0,
-          greetingTargetId: null,
-          queuedIdleCycle: false,
         };
       }
 
-      function createActorFromDefinition(actorInstance) {
-        const definition = actorCatalog[actorInstance.actorType];
-        return createCharacterState(actorInstance.x, actorInstance.y, actorInstance.direction, {
-          id: actorInstance.id,
-          label: actorInstance.label || definition.label,
-          actorType: actorInstance.actorType,
-          controller: actorInstance.controller || definition.controller,
-          spritePrefix: definition.spritePrefix,
-          metricsType: definition.metricsType,
-          renderProfileId: definition.renderProfileId,
-          baseHeight: definition.baseHeight,
-          canGreet: actorInstance.canGreet ?? definition.canGreet,
-        });
-      }
-
-      function createPropFromDefinition(propInstance) {
-        const definition = propCatalog[propInstance.propType];
-        return {
-          id: propInstance.id || propInstance.propType,
-          propType: propInstance.propType,
-          kind: definition.kind,
-          label: propInstance.label || definition.label,
-          spritePrefix: definition.spritePrefix,
-          metricsType: definition.metricsType,
-          renderProfileId: definition.renderProfileId || null,
-          baseHeight: propInstance.baseHeight ?? definition.baseHeight,
-          x: propInstance.x,
-          y: propInstance.y,
-          direction: propInstance.direction,
-          solid: propInstance.solid ?? definition.solid,
-          scale: propInstance.scale ?? definition.scale,
-          shadow: propInstance.shadow ?? definition.shadow,
-        };
-      }
-
-      function invariant(condition, message) {
-        if (!condition) {
-          throw new Error(message);
-        }
-      }
-
-      function validateActorCatalog() {
-        for (const [actorType, definition] of Object.entries(actorCatalog)) {
-          invariant(definition.label, `Actor type "${actorType}" is missing a label.`);
-          invariant(definition.spritePrefix, `Actor type "${actorType}" is missing a spritePrefix.`);
-          invariant(definition.metricsType in fallbackBounds, `Actor type "${actorType}" uses unknown metricsType "${definition.metricsType}".`);
-          invariant(Number.isFinite(definition.baseHeight) && definition.baseHeight > 0, `Actor type "${actorType}" needs a positive baseHeight.`);
-          if (definition.renderProfileId) {
-            invariant(renderProfiles[definition.renderProfileId], `Actor type "${actorType}" references unknown renderProfileId "${definition.renderProfileId}".`);
-          }
-        }
-      }
-
-      function validatePropCatalog() {
-        for (const [propType, definition] of Object.entries(propCatalog)) {
-          invariant(definition.label, `Prop type "${propType}" is missing a label.`);
-          invariant(definition.kind, `Prop type "${propType}" is missing a kind.`);
-          invariant(definition.spritePrefix, `Prop type "${propType}" is missing a spritePrefix.`);
-          invariant(definition.metricsType in fallbackBounds, `Prop type "${propType}" uses unknown metricsType "${definition.metricsType}".`);
-          invariant(Number.isFinite(definition.baseHeight) && definition.baseHeight > 0, `Prop type "${propType}" needs a positive baseHeight.`);
-          if (definition.renderProfileId) {
-            invariant(renderProfiles[definition.renderProfileId], `Prop type "${propType}" references unknown renderProfileId "${definition.renderProfileId}".`);
-          }
-        }
-      }
-
-      function validatePlacedEntity(id, x, y, direction, label) {
-        invariant(typeof id === "string" && id.trim(), `${label} is missing a stable id.`);
-        invariant(Number.isInteger(x) && Number.isInteger(y), `${label} "${id}" must be placed on integer tile coordinates.`);
-        invariant(x >= 0 && y >= 0 && x < grid.width && y < grid.height, `${label} "${id}" is outside the map bounds.`);
-        invariant(spriteDirections.includes(direction), `${label} "${id}" uses unknown direction "${direction}".`);
-      }
-
-      function validateSceneDefinition(definition) {
-        const actorIds = new Set();
-        const propIds = new Set();
-        const actorTiles = new Set();
-        const occupiedSolidTiles = new Set();
-
-        for (const actorInstance of definition.actors) {
-          validatePlacedEntity(actorInstance.id, actorInstance.x, actorInstance.y, actorInstance.direction, "Actor");
-          invariant(actorCatalog[actorInstance.actorType], `Actor "${actorInstance.id}" references unknown actorType "${actorInstance.actorType}".`);
-          invariant(!actorIds.has(actorInstance.id), `Actor id "${actorInstance.id}" is duplicated in sceneDefinition.actors.`);
-          actorIds.add(actorInstance.id);
-          const actorTile = tileKey(actorInstance.x, actorInstance.y);
-          invariant(!actorTiles.has(actorTile), `Actor "${actorInstance.id}" overlaps another actor at ${actorTile}.`);
-          actorTiles.add(actorTile);
-        }
-
-        for (const propInstance of definition.props) {
-          validatePlacedEntity(propInstance.id, propInstance.x, propInstance.y, propInstance.direction, "Prop");
-          const definitionEntry = propCatalog[propInstance.propType];
-          invariant(definitionEntry, `Prop "${propInstance.id}" references unknown propType "${propInstance.propType}".`);
-          invariant(!propIds.has(propInstance.id), `Prop id "${propInstance.id}" is duplicated in sceneDefinition.props.`);
-          propIds.add(propInstance.id);
-
-          if (propInstance.solid ?? definitionEntry.solid) {
-            const key = tileKey(propInstance.x, propInstance.y);
-            invariant(!occupiedSolidTiles.has(key), `Solid prop "${propInstance.id}" overlaps another solid prop at ${key}.`);
-            occupiedSolidTiles.add(key);
-          }
-        }
-
-        for (const actorTile of actorTiles) {
-          invariant(!occupiedSolidTiles.has(actorTile), `A solid prop overlaps an actor spawn at ${actorTile}.`);
-        }
-
-        if (sceneConfig.primaryHumanActorId) {
-          invariant(actorIds.has(sceneConfig.primaryHumanActorId), `sceneConfig.primaryHumanActorId "${sceneConfig.primaryHumanActorId}" is not present in sceneDefinition.actors.`);
-        }
-        if (sceneConfig.cameraFollowActorId) {
-          invariant(actorIds.has(sceneConfig.cameraFollowActorId), `sceneConfig.cameraFollowActorId "${sceneConfig.cameraFollowActorId}" is not present in sceneDefinition.actors.`);
-        }
-      }
-
-      function validateSceneContent(definition) {
-        validateActorCatalog();
-        validatePropCatalog();
-        validateSceneDefinition(definition);
-      }
-
-      function buildOccupancy(objects) {
-        return new Map(objects.filter((object) => object.solid).map((object) => [tileKey(object.x, object.y), object]));
-      }
-
-      function buildSceneRuntime(definition) {
-        validateSceneContent(definition);
-        const worldObjects = definition.props.map(createPropFromDefinition);
-        const characters = definition.actors.map(createActorFromDefinition);
-        return {
-          worldObjects,
-          occupancy: buildOccupancy(worldObjects),
-          characters,
-          charactersById: new Map(characters.map((character) => [character.id, character])),
-        };
-      }
-
-      const { worldObjects, occupancy, characters, charactersById } = buildSceneRuntime(sceneDefinition);
-      const greetingState = {
-        latchedPairKeys: new Set(),
+      const player = createCharacterState(2, 9, "ur");
+      const majisto = {
+        ...createCharacterState(10, 9, "ll"),
+        aiDirectionKey: null,
+        aiDecisionAt: 0,
+        aiWalkUntil: 0,
+        lastRespondedPlayerIdleRunId: 0,
       };
 
       let isLoaded = false;
+      let pendingIdleCycle = false;
       let previousFrameTime = 0;
 
       function hashTile(x, y) {
@@ -719,90 +487,19 @@
         }) || null;
       }
 
-      function isHumanControlled(character) {
-        return character.controller === "human";
-      }
-
-      function isWanderControlled(character) {
-        return character.controller === "wanderer";
-      }
-
-      function isPrimaryHumanCharacter(character) {
-        return !!character && character.id === sceneConfig.primaryHumanActorId;
-      }
-
-      function getPrimaryHumanCharacter() {
-        const primaryCharacter = charactersById.get(sceneConfig.primaryHumanActorId);
-        return primaryCharacter && isHumanControlled(primaryCharacter) ? primaryCharacter : null;
-      }
-
-      function getCameraFollowCharacter() {
-        return charactersById.get(sceneConfig.cameraFollowActorId) || characters[0] || null;
-      }
-
-      function getCharacterPairKey(left, right) {
-        return [left.id, right.id].sort().join(":");
-      }
-
-      function getGreetingTarget(character) {
-        return character.greetingTargetId ? charactersById.get(character.greetingTargetId) || null : null;
-      }
-
-      function orientCharacterToward(character, target) {
-        const directionKey = target ? getDirectionKeyToward(character, target) : null;
-        if (directionKey) {
-          character.direction = directions[directionKey].sprite;
-        }
-      }
-
-      function applyGreetingPose(character, now) {
-        orientCharacterToward(character, getGreetingTarget(character));
-        setCharacterAnimation(character, "idle", now);
-        if (character.greetingUntil > 0 && character.greetingCycleToken !== character.greetingUntil) {
-          startCharacterIdleCycle(character, now);
-          character.greetingCycleToken = character.greetingUntil;
-        }
-      }
-
-      function clearExpiredGreeting(character, now) {
-        if (character.greetingUntil > 0 && character.greetingUntil <= now) {
-          character.greetingUntil = 0;
-          character.greetingCycleToken = 0;
-          character.greetingTargetId = null;
-        }
-      }
-
-      function syncScenePresentationMode() {
-        const primaryHumanCharacter = getPrimaryHumanCharacter();
-        touchOverlay.hidden = !primaryHumanCharacter;
-        canvas.setAttribute(
-          "aria-label",
-          primaryHumanCharacter
-            ? `Isometric walking scene. Use arrow keys, or tap the top-left, top-right, bottom-right, and bottom-left corners to move ${primaryHumanCharacter.label}. Tap the middle to trigger ${primaryHumanCharacter.label}'s idle animation.`
-            : "Isometric Weliwel and Majisto walking scene. Weliwel and Majisto wander the garden on their own and greet each other when they meet."
-        );
-      }
-
       function toggleMarkerVisibility() {
         debug.showMarkers = !debug.showMarkers;
         render();
       }
 
       function triggerIdleCycle(now) {
-        return requestIdleCycle(getPrimaryHumanCharacter(), now);
-      }
-
-      function requestIdleCycle(character, now) {
-        if (!character) {
+        if (player.moving) {
+          pendingIdleCycle = true;
           return false;
         }
-        if (character.moving) {
-          character.queuedIdleCycle = true;
-          return false;
-        }
-        character.queuedIdleCycle = false;
-        setCharacterAnimation(character, "idle", now);
-        startCharacterIdleCycle(character, now);
+        pendingIdleCycle = false;
+        setAnimation("idle", now);
+        startCharacterIdleCycle(player, now);
         return true;
       }
 
@@ -902,9 +599,8 @@
 
       function startTouchMove(directionKey, now) {
         activateControl(directionKey, touchSource);
-        const controlledCharacter = getPrimaryHumanCharacter();
-        if (controlledCharacter && !controlledCharacter.moving) {
-          tryStartHumanMove(controlledCharacter, directionKey, now);
+        if (!player.moving) {
+          tryStartMove(directionKey, now);
         }
       }
 
@@ -923,41 +619,46 @@
       }
 
       function worldSortValue(entity) {
-        const characterDepthBias = entity.sortCategory === "actor" ? 0.06 : 0.02;
+        const characterDepthBias = entity.kind === "player" || entity.kind === "majisto" ? 0.06 : 0.02;
         return entity.y + entity.x + characterDepthBias;
       }
 
       function makeManifest() {
         const manifest = [];
-        const actorFrames = Array.from(new Set([...idleSequence, ...walkingSequence]));
-        const actorTypesInScene = Array.from(new Set(sceneDefinition.actors.map((actor) => actor.actorType)));
-        const propTypesInScene = Array.from(new Set(sceneDefinition.props.map((prop) => prop.propType)));
+        const directionsList = ["ur", "ul", "lr", "ll"];
+        const playerFrames = Array.from(new Set([...idleSequence, ...walkingSequence]));
+        const characters = [
+          { kind: "player", prefix: "Weliwel" },
+          { kind: "majisto", prefix: "Majisto" },
+        ];
 
-        for (const direction of spriteDirections) {
-          for (const actorType of actorTypesInScene) {
-            const actorDefinition = actorCatalog[actorType];
-            for (const frame of actorFrames) {
+        for (const direction of directionsList) {
+          for (const character of characters) {
+            for (const frame of playerFrames) {
               manifest.push({
-                assetFamily: "actor",
-                assetKey: actorType,
+                kind: character.kind,
                 direction,
                 frame,
-                metricsType: actorDefinition.metricsType,
-                renderProfileId: actorDefinition.renderProfileId,
-                src: `Weliwel_Sprites/${actorDefinition.spritePrefix}_${frame}_${direction}.png`,
+                type: "player",
+                src: `Weliwel_Sprites/${character.prefix}_${frame}_${direction}.png`,
               });
             }
           }
 
-          for (const propType of propTypesInScene) {
-            const propDefinition = propCatalog[propType];
+          manifest.push({
+            kind: "tree",
+            direction,
+            type: "tree",
+            src: `Weliwel_Sprites/tree_${direction}.png`,
+          });
+
+          for (const flower of ["redflower", "whiteflower", "yellowflower"]) {
             manifest.push({
-              assetFamily: "prop",
-              assetKey: propType,
+              kind: "flower",
+              flower,
               direction,
-              metricsType: propDefinition.metricsType,
-              renderProfileId: propDefinition.renderProfileId || null,
-              src: `Weliwel_Sprites/${propDefinition.spritePrefix}_${direction}.png`,
+              type: "flower",
+              src: `Weliwel_Sprites/${flower}_${direction}.png`,
             });
           }
         }
@@ -1110,19 +811,33 @@
         return new Promise((resolve, reject) => {
           const image = new Image();
           image.onload = () => {
-            const fallback = fallbackBounds[entry.metricsType];
+            const fallback = fallbackBounds[entry.type];
             let metrics = computeSpriteMetrics(image, fallback);
 
-            const profile = entry.renderProfileId ? renderProfiles[entry.renderProfileId] : null;
-            const source = profile?.sourceByDirection?.[entry.direction];
-            const pivot = profile?.pivotByDirection?.[entry.direction];
-            const referenceHeight = profile?.referenceHeightByDirection?.[entry.direction];
-            if (source && pivot && referenceHeight) {
-              metrics = {
-                bounds: source,
-                pivot,
-                referenceHeight,
-              };
+            if (entry.kind === "player" || entry.kind === "majisto") {
+              const profile = characterRenderProfiles[entry.kind];
+              const source = profile?.sourceByDirection?.[entry.direction];
+              const pivot = profile?.pivotByDirection?.[entry.direction];
+              const referenceHeight = profile?.referenceHeightByDirection?.[entry.direction];
+              if (source && pivot && referenceHeight) {
+                metrics = {
+                  bounds: source,
+                  pivot,
+                  referenceHeight,
+                };
+              }
+            }
+
+            if (entry.kind === "flower") {
+              const source = flowerSourceByDirection[entry.direction];
+              const pivot = flowerPivotByDirection[entry.direction];
+              if (source && pivot) {
+                metrics = {
+                  bounds: source,
+                  pivot,
+                  referenceHeight: source.height,
+                };
+              }
             }
             resolve({
               ...entry,
@@ -1142,14 +857,19 @@
         const loaded = await Promise.all(manifest.map(loadSprite));
 
         for (const sprite of loaded) {
-          if (sprite.assetFamily === "actor") {
-            assets.actors[sprite.assetKey] ||= {};
-            assets.actors[sprite.assetKey][sprite.direction] ||= {};
-            assets.actors[sprite.assetKey][sprite.direction][sprite.frame] = sprite;
+          if (sprite.kind === "player" || sprite.kind === "majisto") {
+            assets[sprite.kind][sprite.direction] ||= {};
+            assets[sprite.kind][sprite.direction][sprite.frame] = sprite;
             continue;
           }
-          assets.props[sprite.assetKey] ||= {};
-          assets.props[sprite.assetKey][sprite.direction] = sprite;
+
+          if (sprite.kind === "tree") {
+            assets.tree[sprite.direction] = sprite;
+            continue;
+          }
+
+          assets.flowers[sprite.flower] ||= {};
+          assets.flowers[sprite.flower][sprite.direction] = sprite;
         }
       }
 
@@ -1158,6 +878,14 @@
           return walkingSequence[character.frameIndex % walkingSequence.length];
         }
         return character.idleFrame;
+      }
+
+      function getCurrentPlayerFrame() {
+        return getCurrentCharacterFrame(player);
+      }
+
+      function getCurrentMajistoFrame() {
+        return getCurrentCharacterFrame(majisto);
       }
 
       function setCharacterAnimation(character, animation, now) {
@@ -1176,6 +904,14 @@
         character.idleCycleActive = false;
         character.idleCycleIndex = 0;
         scheduleNextIdleCycle(character, now ?? performance.now());
+      }
+
+      function setAnimation(animation, now) {
+        setCharacterAnimation(player, animation, now);
+      }
+
+      function setMajistoAnimation(animation, now) {
+        setCharacterAnimation(majisto, animation, now);
       }
 
       function stepCharacterAnimation(character, deltaMs, now) {
@@ -1217,34 +953,20 @@
         }
       }
 
-      function stepAllCharacterAnimations(deltaMs, now) {
-        for (const character of characters) {
-          stepCharacterAnimation(character, deltaMs, now);
-        }
+      function stepAnimation(deltaMs, now) {
+        stepCharacterAnimation(player, deltaMs, now);
       }
 
-      function getActorDefinition(character) {
-        return actorCatalog[character.actorType];
-      }
-
-      function getPropDefinition(prop) {
-        return propCatalog[prop.propType];
-      }
-
-      function getActorSprite(character) {
-        const frame = getCurrentCharacterFrame(character);
-        return assets.actors[character.actorType]?.[character.direction]?.[frame] || null;
-      }
-
-      function getPropSprite(prop) {
-        return assets.props[prop.propType]?.[prop.direction] || null;
+      function stepMajistoAnimation(deltaMs, now) {
+        stepCharacterAnimation(majisto, deltaMs, now);
       }
 
       function getBlockingCharacterAt(nextX, nextY, movingCharacter) {
-        for (const character of characters) {
-          if (movingCharacter !== character && character.x === nextX && character.y === nextY) {
-            return { state: character, label: character.label };
-          }
+        if (movingCharacter !== player && player.x === nextX && player.y === nextY) {
+          return { state: player, label: "Weliwel" };
+        }
+        if (movingCharacter !== majisto && majisto.x === nextX && majisto.y === nextY) {
+          return { state: majisto, label: "Majisto" };
         }
         return null;
       }
@@ -1290,270 +1012,192 @@
         };
       }
 
-      function tryStartHumanMove(character, directionKey, now) {
-        const result = tryStartCharacterMove(character, directionKey, now);
+      function tryStartMove(directionKey, now) {
+        const result = tryStartCharacterMove(player, directionKey, now);
         if (!result.moved) {
-          character.blockedUntil = now + 520;
-          setCharacterAnimation(character, "idle", now);
+          player.blockedUntil = now + 520;
+          setAnimation("idle", now);
           return false;
         }
         return true;
       }
 
-      function updateHumanCharacter(character, now) {
-        clearExpiredGreeting(character, now);
-        const activeDirection = isPrimaryHumanCharacter(character) ? getActiveDirectionKey() : null;
+      function tryStartMajistoMove(directionKey, now) {
+        const result = tryStartCharacterMove(majisto, directionKey, now);
+        if (!result.moved) {
+          majisto.blockedUntil = now + 420;
+          setMajistoAnimation("idle", now);
+          return false;
+        }
+        return true;
+      }
 
-        if (!character.moving) {
-          character.renderX = character.x;
-          character.renderY = character.y;
-          if (character.greetingUntil > now) {
-            applyGreetingPose(character, now);
-            return;
-          }
+      function updateMovement(now) {
+        const activeDirection = getActiveDirectionKey();
+
+        if (!player.moving) {
+          player.renderX = player.x;
+          player.renderY = player.y;
           if (activeDirection) {
-            tryStartHumanMove(character, activeDirection, now);
+            tryStartMove(activeDirection, now);
           } else {
-            if (character.queuedIdleCycle) {
-              requestIdleCycle(character, now);
+            if (pendingIdleCycle) {
+              triggerIdleCycle(now);
               return;
             }
-            setCharacterAnimation(character, "idle", now);
-            if (character.blockedUntil && now > character.blockedUntil) {
-              character.blockedUntil = 0;
+            setAnimation("idle", now);
+            if (player.blockedUntil && now > player.blockedUntil) {
+              player.blockedUntil = 0;
             }
           }
           return;
         }
 
-        const elapsed = now - character.moveStartedAt;
-        const progress = clamp(elapsed / character.moveDuration, 0, 1);
+        const elapsed = now - player.moveStartedAt;
+        const progress = clamp(elapsed / player.moveDuration, 0, 1);
         const eased = easeInOutSine(progress);
-        character.renderX = character.fromX + (character.toX - character.fromX) * eased;
-        character.renderY = character.fromY + (character.toY - character.fromY) * eased;
+        player.renderX = player.fromX + (player.toX - player.fromX) * eased;
+        player.renderY = player.fromY + (player.toY - player.fromY) * eased;
 
         if (progress >= 1) {
-          character.moving = false;
-          character.renderX = character.toX;
-          character.renderY = character.toY;
+          player.moving = false;
+          player.renderX = player.toX;
+          player.renderY = player.toY;
 
-          if (character.greetingUntil > now) {
-            applyGreetingPose(character, now);
-            return;
-          }
-
-          if (!(activeDirection && tryStartHumanMove(character, activeDirection, now))) {
-            if (character.queuedIdleCycle) {
-              requestIdleCycle(character, now);
+          if (!(activeDirection && tryStartMove(activeDirection, now))) {
+            if (pendingIdleCycle) {
+              triggerIdleCycle(now);
             } else {
-              setCharacterAnimation(character, "idle", now);
+              setAnimation("idle", now);
             }
           }
         }
       }
 
-      function updatePassiveCharacter(character, now) {
-        clearExpiredGreeting(character, now);
-        character.renderX = character.x;
-        character.renderY = character.y;
-        if (character.greetingUntil > now) {
-          applyGreetingPose(character, now);
-        } else {
-          setCharacterAnimation(character, "idle", now);
+      function scheduleMajistoIdle(now, minDelay = 900, maxDelay = 2800) {
+        majisto.aiDirectionKey = null;
+        majisto.aiWalkUntil = 0;
+        majisto.aiDecisionAt = now + randomBetween(minDelay, maxDelay);
+        setMajistoAnimation("idle", now);
+      }
+
+      function scheduleMajistoWalk(now, directionKey = null) {
+        majisto.aiDirectionKey = directionKey || pickRandomDirection();
+        majisto.aiWalkUntil = now + randomBetween(1100, 3600);
+        if (majisto.aiDecisionAt < now) {
+          majisto.aiDecisionAt = now;
         }
       }
 
-      function scheduleCharacterIdle(character, now, minDelay = 900, maxDelay = 2800) {
-        character.aiDirectionKey = null;
-        character.aiWalkUntil = 0;
-        character.aiDecisionAt = now + randomBetween(minDelay, maxDelay);
-        setCharacterAnimation(character, "idle", now);
-      }
-
-      function scheduleCharacterWalk(character, now, directionKey = null) {
-        character.aiDirectionKey = directionKey || pickRandomDirection();
-        character.aiWalkUntil = now + randomBetween(1100, 3600);
-        if (character.aiDecisionAt < now) {
-          character.aiDecisionAt = now;
-        }
-      }
-
-      function tryStartAutonomousMove(character, directionKey, now) {
-        const result = tryStartCharacterMove(character, directionKey, now);
-        if (!result.moved) {
-          character.blockedUntil = now + 420;
-          setCharacterAnimation(character, "idle", now);
+      function maybeMajistoRespondToWeliwelIdle(now) {
+        if (majisto.moving || !player.idleCycleActive) {
           return false;
         }
+        if (player.idleCycleRunId <= 0 || majisto.lastRespondedPlayerIdleRunId === player.idleCycleRunId) {
+          return false;
+        }
+        if (!areCharactersAdjacent(majisto, player)) {
+          return false;
+        }
+
+        const lookDirectionKey = getDirectionKeyToward(majisto, player);
+        if (lookDirectionKey) {
+          majisto.direction = directions[lookDirectionKey].sprite;
+        }
+        majisto.aiDirectionKey = null;
+        majisto.aiWalkUntil = 0;
+        majisto.aiDecisionAt = now + randomBetween(1400, 3400);
+        majisto.lastRespondedPlayerIdleRunId = player.idleCycleRunId;
+        startCharacterIdleCycle(majisto, now);
         return true;
       }
 
-      function maybePickCharacterBehavior(character, now) {
-        if (character.aiDirectionKey || now < character.aiDecisionAt) {
+      function maybePickMajistoBehavior(now) {
+        if (majisto.aiDirectionKey || now < majisto.aiDecisionAt) {
           return;
         }
         if (Math.random() < 0.45) {
-          scheduleCharacterIdle(character, now, 1300, 5400);
+          scheduleMajistoIdle(now, 1300, 5400);
           return;
         }
-        scheduleCharacterWalk(character, now);
+        scheduleMajistoWalk(now);
       }
 
-      function attemptAutonomousMove(character, now, maxAttempts = 3) {
+      function attemptMajistoMove(now, maxAttempts = 3) {
         for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-          if (!character.aiDirectionKey) {
+          if (!majisto.aiDirectionKey) {
             return false;
           }
-          if (tryStartAutonomousMove(character, character.aiDirectionKey, now)) {
+          if (tryStartMajistoMove(majisto.aiDirectionKey, now)) {
             return true;
           }
           if (Math.random() < 0.5) {
-            scheduleCharacterIdle(character, now, 700, 1900);
+            scheduleMajistoIdle(now, 700, 1900);
             return false;
           }
-          scheduleCharacterWalk(character, now, pickRandomDirection(character.aiDirectionKey));
+          scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
         }
-        scheduleCharacterIdle(character, now, 700, 1700);
+        scheduleMajistoIdle(now, 700, 1700);
         return false;
       }
 
-      function startGreeting(left, right, now) {
-        const holdUntil = now + randomBetween(sceneConfig.greetingHoldMin, sceneConfig.greetingHoldMax);
+      function updateMajistoMovement(now) {
+        if (!majisto.moving) {
+          majisto.renderX = majisto.x;
+          majisto.renderY = majisto.y;
 
-        for (const [character, target] of [
-          [left, right],
-          [right, left],
-        ]) {
-          character.aiDirectionKey = null;
-          character.aiWalkUntil = 0;
-          character.aiDecisionAt = holdUntil;
-          character.greetingUntil = holdUntil;
-          character.greetingCycleToken = 0;
-          character.greetingTargetId = target.id;
-          if (!character.moving) {
-            applyGreetingPose(character, now);
-          }
-        }
-
-        greetingState.latchedPairKeys.add(getCharacterPairKey(left, right));
-      }
-
-      function maybeStartGreetings(now) {
-        const adjacentPairKeys = new Set();
-
-        for (let leftIndex = 0; leftIndex < characters.length; leftIndex += 1) {
-          for (let rightIndex = leftIndex + 1; rightIndex < characters.length; rightIndex += 1) {
-            const left = characters[leftIndex];
-            const right = characters[rightIndex];
-            const pairKey = getCharacterPairKey(left, right);
-
-            if (!areCharactersAdjacent(left, right)) {
-              continue;
-            }
-
-            adjacentPairKeys.add(pairKey);
-
-            if (!left.canGreet || !right.canGreet) {
-              continue;
-            }
-            if (greetingState.latchedPairKeys.has(pairKey)) {
-              continue;
-            }
-            if (left.greetingUntil > now || right.greetingUntil > now) {
-              continue;
-            }
-
-            startGreeting(left, right, now);
-          }
-        }
-
-        for (const pairKey of Array.from(greetingState.latchedPairKeys)) {
-          if (!adjacentPairKeys.has(pairKey)) {
-            greetingState.latchedPairKeys.delete(pairKey);
-          }
-        }
-      }
-
-      function updateWanderCharacter(character, now) {
-        clearExpiredGreeting(character, now);
-        if (!character.moving) {
-          character.renderX = character.x;
-          character.renderY = character.y;
-
-          if (character.greetingUntil > now) {
-            applyGreetingPose(character, now);
+          if (maybeMajistoRespondToWeliwelIdle(now)) {
             return;
           }
 
-          if (character.aiDirectionKey && now >= character.aiWalkUntil) {
+          if (majisto.aiDirectionKey && now >= majisto.aiWalkUntil) {
             if (Math.random() < 0.5) {
-              scheduleCharacterIdle(character, now, 900, 2600);
+              scheduleMajistoIdle(now, 900, 2600);
               return;
             }
-            scheduleCharacterWalk(character, now, pickRandomDirection(character.aiDirectionKey));
+            scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
           }
 
-          maybePickCharacterBehavior(character, now);
+          maybePickMajistoBehavior(now);
 
-          if (!character.aiDirectionKey) {
-            setCharacterAnimation(character, "idle", now);
+          if (!majisto.aiDirectionKey) {
+            setMajistoAnimation("idle", now);
             return;
           }
 
-          if (!attemptAutonomousMove(character, now, 3)) {
-            setCharacterAnimation(character, "idle", now);
+          if (!attemptMajistoMove(now, 3)) {
+            setMajistoAnimation("idle", now);
           }
           return;
         }
 
-        const elapsed = now - character.moveStartedAt;
-        const progress = clamp(elapsed / character.moveDuration, 0, 1);
+        const elapsed = now - majisto.moveStartedAt;
+        const progress = clamp(elapsed / majisto.moveDuration, 0, 1);
         const eased = easeInOutSine(progress);
-        character.renderX = character.fromX + (character.toX - character.fromX) * eased;
-        character.renderY = character.fromY + (character.toY - character.fromY) * eased;
+        majisto.renderX = majisto.fromX + (majisto.toX - majisto.fromX) * eased;
+        majisto.renderY = majisto.fromY + (majisto.toY - majisto.fromY) * eased;
 
         if (progress >= 1) {
-          character.moving = false;
-          character.renderX = character.toX;
-          character.renderY = character.toY;
+          majisto.moving = false;
+          majisto.renderX = majisto.toX;
+          majisto.renderY = majisto.toY;
 
-          if (character.greetingUntil > now) {
-            applyGreetingPose(character, now);
-            return;
-          }
-
-          if (!character.aiDirectionKey || now >= character.aiWalkUntil) {
+          if (!majisto.aiDirectionKey || now >= majisto.aiWalkUntil) {
             if (Math.random() < 0.55) {
-              scheduleCharacterIdle(character, now, 850, 2600);
+              scheduleMajistoIdle(now, 850, 2600);
               return;
             }
-            scheduleCharacterWalk(character, now, pickRandomDirection(character.aiDirectionKey));
+            scheduleMajistoWalk(now, pickRandomDirection(majisto.aiDirectionKey));
           }
 
-          if (!attemptAutonomousMove(character, now, 2)) {
-            setCharacterAnimation(character, "idle", now);
+          if (!attemptMajistoMove(now, 2)) {
+            setMajistoAnimation("idle", now);
           }
-        }
-      }
-
-      const controllerHandlers = {
-        human: updateHumanCharacter,
-        wanderer: updateWanderCharacter,
-      };
-
-      function updateCharacters(now) {
-        for (const character of characters) {
-          const handler = controllerHandlers[character.controller] || updatePassiveCharacter;
-          handler(character, now);
         }
       }
 
       function updateCamera() {
-        const cameraTarget = getCameraFollowCharacter();
-        if (!cameraTarget) {
-          return;
-        }
-        const anchor = projectMap(cameraTarget.renderX, cameraTarget.renderY);
+        const anchor = projectMap(player.renderX, player.renderY);
         const targetX = -anchor.x;
         const targetY = scene.height * 0.22 - anchor.y;
         camera.x += (targetX - camera.x) * 0.12;
@@ -1561,7 +1205,7 @@
       }
 
       function getMarkerRadius(entityKind) {
-        if (entityKind === "actor") {
+        if (entityKind === "player" || entityKind === "majisto") {
           return { x: 17, y: 8, alpha: 0.17 };
         }
         if (entityKind === "tree") {
@@ -1689,19 +1333,21 @@
       function drawEntities() {
         const entities = [
           ...worldObjects.map((object) => ({
-            entityType: "prop",
-            sortCategory: "prop",
+            kind: object.kind,
             x: object.x,
             y: object.y,
             object,
           })),
-          ...characters.map((character) => ({
-            entityType: "actor",
-            sortCategory: "actor",
-            x: character.renderX,
-            y: character.renderY,
-            character,
-          })),
+          {
+            kind: "player",
+            x: player.renderX,
+            y: player.renderY,
+          },
+          {
+            kind: "majisto",
+            x: majisto.renderX,
+            y: majisto.renderY,
+          },
         ].sort((left, right) => worldSortValue(left) - worldSortValue(right));
 
         for (const entity of entities) {
@@ -1709,23 +1355,29 @@
           const anchorX = position.x;
           const anchorY = position.y + grid.tileHeight * 0.18;
 
-          if (entity.entityType === "actor") {
-            const character = entity.character;
-            const sprite = getActorSprite(character);
+          if (entity.kind === "player" || entity.kind === "majisto") {
+            const isWeliwel = entity.kind === "player";
+            const character = isWeliwel ? player : majisto;
+            const characterAssets = isWeliwel ? assets.player : assets.majisto;
+            const frame = isWeliwel ? getCurrentPlayerFrame() : getCurrentMajistoFrame();
+            const sprite = characterAssets[character.direction]?.[frame];
             if (!sprite) {
               continue;
             }
             if (debug.showMarkers) {
-              const marker = getMarkerRadius("actor");
+              const marker = getMarkerRadius(entity.kind);
               drawLocationMarker(anchorX, anchorY, marker.x, marker.y, marker.alpha);
             }
-            drawSprite(sprite, anchorX, anchorY, character.baseHeight);
+            drawSprite(sprite, anchorX, anchorY, 180);
             continue;
           }
 
           const object = entity.object;
-          const definition = getPropDefinition(object);
-          const sprite = getPropSprite(object);
+          const sprite =
+            object.kind === "tree"
+              ? assets.tree[object.direction]
+              : assets.flowers[object.flower]?.[object.direction];
+
           if (!sprite) {
             continue;
           }
@@ -1734,8 +1386,9 @@
             const marker = getMarkerRadius(object.kind);
             drawLocationMarker(anchorX, anchorY, marker.x, marker.y, marker.alpha);
           }
+          const baseHeight = object.kind === "tree" ? 192 : 108;
           const renderOffsetY = trimConfig.renderOffsetYByType[object.kind] || 0;
-          drawSprite(sprite, anchorX, anchorY + renderOffsetY, definition.baseHeight * object.scale);
+          drawSprite(sprite, anchorX, anchorY + renderOffsetY, baseHeight * object.scale);
         }
       }
 
@@ -1752,10 +1405,11 @@
         previousFrameTime = now;
 
         if (isLoaded) {
-          maybeStartGreetings(now);
-          updateCharacters(now);
+          updateMovement(now);
+          updateMajistoMovement(now);
           updateCamera();
-          stepAllCharacterAnimations(delta, now);
+          stepAnimation(delta, now);
+          stepMajistoAnimation(delta, now);
           render();
         } else {
           render();
@@ -1778,10 +1432,6 @@
             return;
           }
 
-          if (!getPrimaryHumanCharacter()) {
-            return;
-          }
-
           if (!(event.key in directions)) {
             return;
           }
@@ -1790,9 +1440,6 @@
         });
 
         window.addEventListener("keyup", (event) => {
-          if (!getPrimaryHumanCharacter()) {
-            return;
-          }
           if (!(event.key in directions)) {
             return;
           }
@@ -1809,9 +1456,6 @@
 
       function wireTouchControls() {
         sceneShell.addEventListener("pointerdown", (event) => {
-          if (!getPrimaryHumanCharacter()) {
-            return;
-          }
           if (!event.isPrimary) {
             return;
           }
@@ -1873,7 +1517,6 @@
       }
 
       async function boot() {
-        syncScenePresentationMode();
         resizeCanvas();
         render();
         wireKeyboard();
@@ -1882,18 +1525,14 @@
         try {
           await preloadAssets();
           isLoaded = true;
+          player.idleFrame = "Idle_1";
+          majisto.idleFrame = "Idle_1";
           const now = performance.now();
-          for (const character of characters) {
-            character.idleFrame = "Idle_1";
-            scheduleNextIdleCycle(character, now);
-            character.aiDirectionKey = null;
-            character.aiWalkUntil = 0;
-            character.queuedIdleCycle = false;
-            character.greetingUntil = 0;
-            if (isWanderControlled(character)) {
-              character.aiDecisionAt = now + randomBetween(500, 1400);
-            }
-          }
+          scheduleNextIdleCycle(player, now);
+          scheduleNextIdleCycle(majisto, now);
+          majisto.aiDecisionAt = now + randomBetween(500, 1400);
+          majisto.aiDirectionKey = null;
+          majisto.aiWalkUntil = 0;
         } catch (error) {
           console.error(error);
         }
